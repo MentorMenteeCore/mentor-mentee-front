@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { API_URL } from "./contants";
 
 async function getHome(college: string) {
-  const response = await fetch(`${API_URL}/college/${college}`);
+  const response = await fetch(
+    `${import.meta.env.VITE_API_KEY}/college/${college}`
+  );
   const json = await response.json();
   return json;
 }

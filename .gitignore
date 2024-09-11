@@ -148,7 +148,7 @@ dist
 
 node_modules
 
-pages/contants.ts
+src/pages/contants.ts
 
 *.sublime*
 

@@ -9,7 +9,7 @@ export default function Header() {
     <>
       {isLoggedIn ? (
         <div className="grid grid-cols-3 p-5 fixed top-0 left-0 right-0 z-50 bg-white">
-          <div className="flex gap-4 col-span-2">
+          <div className="flex gap-4 col-span-2 items-center">
             <ul className="">
               <li>
                 <Link to={"/"} className="text-2xl">
@@ -25,8 +25,8 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="grid justify-self-end self-center">
-            <ul className="grid grid-cols-5">
+          <div className="grid justify-self-end items-center col-span-1">
+            <ul className="grid grid-cols-5 justify-items-center items-center gap-3">
               <li>
                 <Link to={"/"}>메세지</Link>
               </li>
@@ -35,13 +35,13 @@ export default function Header() {
               </li>
               <li>
                 <Link
-                  to={"/join/agree"}
-                  className="bg-lightGray01 rounded-[10px] px-[13px] py-[6px]"
+                  to={"/profile/mentor"}
+                  className="bg-lightGray01 rounded-[10px] px-[25px] py-[15px]"
                 ></Link>
               </li>
               <li>
                 <Link to={"/"}>
-                  <img src="/money.png" alt="씨앗" />
+                  <img src="/money.png" alt="씨앗" className="mt-2 ml-2" />
                 </Link>
               </li>
               <li>

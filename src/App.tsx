@@ -11,48 +11,50 @@ import MenteeProfile from "./pages/MenteeProfile";
 import EditMenteeProfile from "./pages/EditMenteeProfile";
 import DepartmentHome from "./pages/DepartmentHome";
 import SettingInformation from "./pages/SettingInformation";
-import Skeleton from "./components/Header";
 import SettingNavigation from "./components/SettingNavigation";
 import ChangePW from "./pages/ChangePW";
 import Home2 from "./pages/Home2";
 import SignUp from "./pages/login";
-import Home from "./pages/Home";
 import DeleteAccount from "./pages/DeleteAccount";
+import Header from "./components/Header";
+import { AuthProvider } from "./components/AuthProvider";
 
 function App() {
   return (
     <>
       <BrowserRouter>
-        <Routes>
-          <Route element={<Skeleton />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/logggg" element={<SignUp />} />
-            <Route path="/departmentHome/:id" element={<DepartmentHome />} />
-            <Route path="/profile">
-              <Route path="mentor" element={<MentorProfile />} />
-              <Route path="mentor/edit" element={<EditMentorProfile />} />
-              <Route path="mentee" element={<MenteeProfile />} />
-              <Route path="mentee/edit" element={<EditMenteeProfile />} />
+        <AuthProvider>
+          <Routes>
+            <Route element={<Header />}>
+              <Route path="/" element={<Home2 />} />
+              <Route path="/logggg" element={<SignUp />} />
+              <Route path="/departmentHome/:id" element={<DepartmentHome />} />
+              <Route path="/profile">
+                <Route path="mentor" element={<MentorProfile />} />
+                <Route path="mentor/edit" element={<EditMentorProfile />} />
+                <Route path="mentee" element={<MenteeProfile />} />
+                <Route path="mentee/edit" element={<EditMenteeProfile />} />
+              </Route>
+              <Route element={<SettingNavigation />}>
+                <Route
+                  path="/setting/information"
+                  element={<SettingInformation />}
+                />
+                <Route path="/setting/change-pw" element={<ChangePW />} />
+                <Route
+                  path="/setting/delete-account"
+                  element={<DeleteAccount />}
+                ></Route>
+              </Route>
             </Route>
-            <Route element={<SettingNavigation />}>
-              <Route
-                path="/setting/information"
-                element={<SettingInformation />}
-              />
-              <Route path="/setting/change-pw" element={<ChangePW />} />
-              <Route
-                path="/setting/delete-account"
-                element={<DeleteAccount />}
-              ></Route>
-            </Route>
-          </Route>
-          <Route path="/join/agree" element={<SignupAgree />} />
-          <Route path="/join/info" element={<Signup />} />
-          <Route path="/join/info2" element={<Signup2 />} />
-          <Route path="/join/roleSelect" element={<SignupRoleSelect />} />
-          <Route path="/login" element={<Signin />} />
-          <Route path="/login/findpw" element={<FindPW />} />
-        </Routes>
+            <Route path="/join/agree" element={<SignupAgree />} />
+            <Route path="/join/info" element={<Signup />} />
+            <Route path="/join/info2" element={<Signup2 />} />
+            <Route path="/join/roleSelect" element={<SignupRoleSelect />} />
+            <Route path="/login" element={<Signin />} />
+            <Route path="/login/findpw" element={<FindPW />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </>
   );

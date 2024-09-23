@@ -1,35 +1,35 @@
+import { useCallback, useRef } from "react";
+
 const EditMentorProfile = () => {
   return (
     <>
-      <div className="w-screen h-screen content-center">
-        <div className="flex justify-between mx-48">
+      <div className="content-center">
+        <div className="flex justify-between px-10 py-10 pr-11">
           {/*왼쪽 프로필*/}
-          <div className="w-2/6 h-full flex justify-center">
-            <div className="w-full">
-              <p className="text-[28px] mb-2 font-bold">Mentor</p>
+          <div className="w-4/12 flex justify-center">
+            <div className="fixed">
+              <p className="text-[28px] pb-2 font-bold">Mentor</p>
               <div className="flex justify-center mb-[10px]">
                 <img src="/profile.png" />
               </div>
-              <div className="flex justify-center mb-[9px]">
+              <div className="flex justify-center mb-5">
                 <button className="border-2 border-[#D9D9D9] rounded-[20px] px-[27px] py-[6px] text-xl">
                   멘티로 전환
                 </button>
               </div>
               <p className="text-[22px] mb-6 font-bold">소개글</p>
-              <div className="border-2 border-black rounded-[15px]">
-                <div className="flex justify-end text-xl text-[#FF0000] opacity-50 pr-[11px] pt-[10px]">
-                  <button>수정</button>
-                </div>
+              <div className="border-2 border-black rounded-[15px] p-5">
                 {/*height 자동으로 늘려주는 JavaScript 코드 추가해야함*/}
                 <textarea
-                  className="text-xl mb-[25px] w-full outline-none"
-                  placeholder="안녕하세요! 궁금한 거 있으시면 언제든 연락주세요!0!"
+                  className="text-xl w-full outline-none resize-none row-5 overflow-hidden"
+                  value="안녕하세요! 궁금한 거 있으시면 언제든 연락주세요!0!"
+                  onInput={handleResizeHeight}
                 />
               </div>
             </div>
           </div>
           {/*오른쪽 정보*/}
-          <div className="w-3/6 h-full">
+          <div className="w-7/12 h-full">
             <div className="mb-16">
               <div className="border-2 border-black rounded-[15px]">
                 <div className="flex justify-between px-[19px] py-[12px]">

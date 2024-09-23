@@ -1,10 +1,10 @@
 const MentorProfile = () => {
   return (
     <>
-      <div className="content-center">
-        <div className="flex justify-between px-10 py-10">
+      <div className="content-center ">
+        <div className="flex justify-between px-10 py-10 pr-11">
           {/*왼쪽 프로필*/}
-          <div className="w-full flex justify-center ">
+          <div className="flex justify-center w-4/12">
             <div className="fixed">
               <div className="flex justify-center">
                 <img src="/profile.png" />
@@ -25,7 +25,7 @@ const MentorProfile = () => {
             </div>
           </div>
           {/*오른쪽 정보*/}
-          <div className="w-full ">
+          <div className="w-7/12 mr-4">
             <div className="mb-16">
               <h2 className="text-[22px] font-bold">연락 가능 시간</h2>
               <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
@@ -194,8 +194,8 @@ const MentorProfile = () => {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end">
-              <button className="h-[61px] bg-[#FF0000] opacity-50 rounded-[10px] text-white text-2xl px-[50px] py-[13px]">
+            <div className="flex justify-end fixed bottom-16 right-12">
+              <button className="h-[61px] bg-[#FF0000] opacity-50 rounded-[10px] text-white text-2xl px-[50px] py-[13px] animate-bounce">
                 문의하기
               </button>
             </div>

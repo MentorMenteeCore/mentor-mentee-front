@@ -20,9 +20,13 @@ export default function Home2() {
       collegeName: "경영대학",
       college: "business",
     },
+    {
+      collegeName: "사범대학",
+      college: "education",
+    },
   ]);
 
-  const [selectedCollege, setSelectedCollege] = useState("education");
+  const [selectedCollege, setSelectedCollege] = useState("humanities");
   const [posts, setPosts] = useState([]);
 
   const handleSelect = (e) => {

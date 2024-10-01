@@ -26,7 +26,7 @@ export default function Header() {
           </div>
 
           <div className="grid justify-self-end items-center col-span-1">
-            <ul className="grid grid-cols-5 justify-items-center items-center gap-3">
+            <ul className="grid grid-cols-5 justify-items-center items-center gap-2">
               <li>
                 <Link to={"/"}>메세지</Link>
               </li>

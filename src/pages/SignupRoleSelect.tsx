@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const SignupRoleSelect = () => {
   const [currentImage, setCurrentImage] = useState("/role.png");
+  const [selectedRole, setSelectedRole] = useState("");
+  const navigate = useNavigate();
 
   const handleMouseEnter = (image) => {
     setCurrentImage(image);
@@ -12,10 +14,11 @@ const SignupRoleSelect = () => {
     setCurrentImage("/role.png");
   };
 
-  const handleClick = (event) => {
-    event.preventDefault();
-    window.location.href = "/join/info";
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    navigate("/join/info", { state: { role } });
   };
+
   return (
     <>
       <div className="">
@@ -28,7 +31,7 @@ const SignupRoleSelect = () => {
           <div className="w-full flex justify-between">
             <div className="flex w-full justify-center items-center">
               <h2
-                onClick={handleClick}
+                onClick={() => handleRoleSelect("ROLE_MENTOR")}
                 className="text-[64px] cursor-pointer"
                 onMouseEnter={() => handleMouseEnter("/role-grad.png")}
                 onMouseLeave={handleMouseLeave}
@@ -45,7 +48,7 @@ const SignupRoleSelect = () => {
             </div>
             <div className="flex justify-center items-center w-full">
               <h2
-                onClick={handleClick}
+                onClick={() => handleRoleSelect("ROLE_MENTEE")}
                 className="text-[64px] cursor-pointer"
                 onMouseEnter={() => handleMouseEnter("/role-stu.png")}
                 onMouseLeave={handleMouseLeave}

@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
+import api from "../services/api";
 
 const Signin = () => {
   const [inputEmail, setInputEmail] = useState("");
   const [inputPw, setInputPw] = useState("");
   const [keepLogin, setKeepLogin] = useState(false);
 
-  const LoginFunc = (e, LogInPunc) => {
+  const LoginFunc = (e) => {
     e.preventDefault();
 
     if (!inputEmail) {
@@ -15,27 +16,20 @@ const Signin = () => {
     } else if (!inputPw) {
       return alert("Password를 입력하세요.");
     } else {
-      axios({
-        method: "post",
-        url: `${import.meta.env.VITE_API_KEY}/user/login`,
-        data: JSON.stringify({
+      axios
+        .post("/user/login", {
           email: inputEmail,
           password: inputPw,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
+        })
         .then((res) => {
-          console.log(res.data);
-
-          const token = res.data.accessToken;
+          const { accessToken, refreshToken } = res.data;
 
           if (keepLogin) {
-            localStorage.setItem("token", token);
+            localStorage.setItem("token", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
           } else {
-            sessionStorage.setItem("token", token);
+            sessionStorage.setItem("token", accessToken);
+            sessionStorage.setItem("refreshToken", refreshToken);
           }
 
           if (res.status === 200) {

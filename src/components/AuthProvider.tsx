@@ -1,9 +1,51 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import api from "../services/api";
 
-const AuthContext = createContext();
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-export const AuthProvider = ({ children }) => {
+const AuthContext = createContext({
+  isLoggedIn: false,
+  setIsLoggedIn: (value: boolean) => {},
+});
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const refreshAccessToken = async () => {
+    const refreshToken =
+      localStorage.getItem("refreshToken") ||
+      sessionStorage.getItem("refreshToken");
+
+    try {
+      const response = await api.post("/refresh", { token: refreshToken });
+
+      const { accessToken } = response.data;
+
+      if (localStorage.getItem("keepLogin")) {
+        localStorage.setItem("token", accessToken);
+      } else {
+        sessionStorage.setItem("token", accessToken);
+      }
+
+      setIsLoggedIn(true);
+    } catch (error) {
+      console.log("Failed to refresh access token: ", error);
+      setIsLoggedIn(false);
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("refreshToken");
+      window.location.replace("/login");
+    }
+  };
 
   useEffect(() => {
     const token =

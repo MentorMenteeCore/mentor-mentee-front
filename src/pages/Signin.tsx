@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { useState } from "react";
 import api from "../services/api";
 
@@ -16,7 +15,7 @@ const Signin = () => {
     } else if (!inputPw) {
       return alert("Password를 입력하세요.");
     } else {
-      axios
+      api
         .post("/user/login", {
           email: inputEmail,
           password: inputPw,

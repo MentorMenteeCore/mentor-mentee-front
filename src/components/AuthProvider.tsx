@@ -14,6 +14,7 @@ interface AuthProviderProps {
 const AuthContext = createContext({
   isLoggedIn: false,
   setIsLoggedIn: (value: boolean) => {},
+  logout: () => {},
 });
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
@@ -47,6 +48,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const logout = async () => {
+    try {
+      await api.delete("/logout");
+      setIsLoggedIn(false);
+
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("refreshToken");
+    } catch (error) {
+      console.log("로그아웃 실패: ", error);
+    }
+  };
+
   useEffect(() => {
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -56,7 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, logout }}>
       {children}
     </AuthContext.Provider>
   );

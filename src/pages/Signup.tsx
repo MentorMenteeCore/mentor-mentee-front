@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -16,25 +17,27 @@ const Signup = () => {
       return alert("올바른 이메일 형식이 아닙니다.");
     }
 
-    // 입력된 이메일이 "test@example.com"인 경우에만 중복 확인
-    if (email === "test@example.com") {
-      setEmailExists(true);
-    } else {
-      setEmailExists(false);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_KEY}/user/signup/email`,
+        {
+          params: { email: email },
+        }
+      );
+
+      if (response.status === 200) {
+        setEmailExists(false);
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data.message === "중복 이메일 입니다."
+      ) {
+        setEmailExists(true);
+      } else {
+        console.error("이메일 확인 중 오류 발생: ", error);
+      }
     }
-
-    // 주석 처리된 axios 요청도 사용하고 싶다면 아래의 코드 활성화
-    // try {
-    //   const response = await axios.post("/user/signup/email", {
-    //     email: email,
-    //   });
-
-    //   if (response.status === 200) {
-    //     setEmailExists(response.data.exists); // 이메일 존재 여부에 따라 상태 업데이트
-    //   }
-    // } catch (error) {
-    //   console.error("이메일 확인 중 오류 발생: ", error);
-    // }
   };
 
   function handleClick(event) {
@@ -59,7 +62,7 @@ const Signup = () => {
             />
             <div className="flex justify-between gap-3">
               <input
-                type="email" // 이메일 타입으로 변경
+                type="email"
                 placeholder="이메일"
                 value={email}
                 onChange={(e) => {

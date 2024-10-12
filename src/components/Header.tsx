@@ -10,6 +10,9 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState([]);
   const [isDropdownOpen, setIsDropDownOpen] = useState(false);
 
+  const accessToken =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
+
   const handleSearch = async () => {
     if (!search.trim()) {
       setSearchResults([]);
@@ -29,6 +32,9 @@ export default function Header() {
 
       const response = await axios.get(apiUrl, {
         params: params,
+        headers: {
+          Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+        },
       });
 
       setSearchResults(response.data);

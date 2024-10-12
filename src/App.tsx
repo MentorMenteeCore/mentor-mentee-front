@@ -18,6 +18,7 @@ import SignUp from "./pages/login";
 import DeleteAccount from "./pages/DeleteAccount";
 import Header from "./components/Header";
 import { AuthProvider } from "./components/AuthProvider";
+import Home from "./pages/Home";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Routes>
             <Route element={<Header />}>
               <Route path="/" element={<Home2 />} />
+              <Route path="/fakeHome" element={<Home />} />
               <Route path="/logggg" element={<SignUp />} />
               <Route path="/departmentHome/:id" element={<DepartmentHome />} />
               <Route path="/profile">

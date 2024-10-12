@@ -26,7 +26,7 @@ export default function Home2() {
     },
   ]);
 
-  const [selectedCollege, setSelectedCollege] = useState("humanities");
+  const [selectedCollege, setSelectedCollege] = useState("business");
   const [posts, setPosts] = useState([]);
 
   const handleSelect = (e) => {

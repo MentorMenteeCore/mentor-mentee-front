@@ -49,19 +49,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
+    const accessToken =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
     try {
-      await api.delete("/logout");
-      setIsLoggedIn(false);
+      const response = await api.delete("/user/logout", {
+        headers: {
+          Authorization: `Bearer ${{ accessToken }}`,
+        },
+        data: {
+          token: accessToken,
+        },
+      });
 
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      sessionStorage.removeItem("refreshToken");
+      // 로그아웃 성공 확인
+      if (response.status === 200) {
+        setIsLoggedIn(false);
+        // 로그아웃 후 토큰 제거
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("refreshToken");
+        console.log("로그아웃 성공");
+      } else {
+        console.log("로그아웃 실패: ", response.data);
+      }
     } catch (error) {
-      console.log("로그아웃 실패: ", error);
+      console.log(
+        "로그아웃 중 오류 발생: ",
+        error.response ? error.response.data : error
+      );
     }
   };
-
   useEffect(() => {
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");

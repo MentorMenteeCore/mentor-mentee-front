@@ -25,6 +25,7 @@ function App() {
     <>
       <BrowserRouter>
         <AuthProvider>
+          {/* <SearchProvider> */}
           <Routes>
             <Route element={<Header />}>
               <Route path="/" element={<Home2 />} />
@@ -56,6 +57,7 @@ function App() {
             <Route path="/login" element={<Signin />} />
             <Route path="/login/findpw" element={<FindPW />} />
           </Routes>
+          {/* </SearchProvider> */}
         </AuthProvider>
       </BrowserRouter>
     </>

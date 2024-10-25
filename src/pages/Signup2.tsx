@@ -1,18 +1,20 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MaterialSymbolsVisibilityRounded } from "../assets/icons";
 import { useState } from "react";
-import { TextInput } from "react-native-paper";
+import axios from "axios";
 
 const Signup2 = () => {
-  function handleClick(event) {
-    event.preventDefault();
-    window.location.href = "/";
-  }
+  const location = useLocation();
+  const { name, email, role } = location.state || {};
+  const [nickname, setNickname] = useState("");
+  const [password, setPassword] = useState("");
+  const [nicknameExists, setNicknameExists] = useState<boolean | null>(null);
   const [iconColor, setIconColor] = useState("#000");
   const [passwordType, setPasswordType] = useState({
     type: "password",
     visible: false,
   });
+  const navigate = useNavigate();
 
   function handlePasswordType() {
     setPasswordType(() => {
@@ -25,6 +27,57 @@ const Signup2 = () => {
       }
     });
   }
+
+  const handleNicknameCheck = async () => {
+    if (!nickname) {
+      return alert("Nickname을 입력하세요.");
+    }
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_KEY}/user/signup/nickname`,
+        { params: { nickname: nickname } }
+      );
+      if (response.status == 200) {
+        setNicknameExists(false);
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data.message === "유저의 닉네임이 이미 존재합니다"
+      ) {
+        setNicknameExists(true);
+        console.error("중복 닉네임입니다.");
+      } else {
+        setNicknameExists(null);
+        console.error("닉네임 확인 중 오류 발생: ", error);
+      }
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    if (!password) {
+      return alert("비밀번호를 입력해주세요.");
+    }
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_KEY}/user/sign-up`,
+        { email, userName: name, nickname, password, role }
+      );
+
+      if (response.status === 200) {
+        alert("회원가입이 완료되었습니다.");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("회원가입 중 오류 발생: ", error);
+      alert("회원가입에 실패했습니다.");
+    }
+  };
+
   return (
     <>
       <div className="">
@@ -44,21 +97,39 @@ const Signup2 = () => {
                       <input
                         type="text"
                         placeholder="닉네임을 입력해주세요."
+                        value={nickname}
+                        onChange={(e) => setNickname(e.target.value)}
                         className="bg-lightGray01 placeholder-black text-2xl rounded-[10px] opacity-50 pl-[21px] py-4 pr-7"
                       />
                       <button
-                        type="submit"
+                        type="button"
                         className="bg-red01 opacity-50 text-white text-2xl rounded-[20px] py-2 px-5"
+                        onClick={handleNicknameCheck}
                       >
                         중복확인
                       </button>
                     </div>
+                    {nicknameExists !== null && (
+                      <p
+                        className={`text-xl ${
+                          nicknameExists ? "text-red-500" : "text-green-500"
+                        }`}
+                      >
+                        {nicknameExists
+                          ? "이미 등록된 닉네임입니다."
+                          : "사용 가능한 닉네임입니다."}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <p className="text-xl">비밀번호</p>
                     <div className="grid gap-3">
                       <input
                         type="password"
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                        }}
                         placeholder="비밀번호를 입력해 주세요. (8자리 이상)"
                         className="bg-lightGray01 placeholder-black text-2xl rounded-[10px] opacity-50 pl-[21px] py-4"
                       />
@@ -84,8 +155,8 @@ const Signup2 = () => {
                   <div className="py-[60px]"></div>
                   <button
                     className="border-[1px] bg-transparent border-black rounded-[10px] text-black text-2xl py-4 p-13 "
-                    type="submit"
-                    onClick={handleClick}
+                    type="button"
+                    onClick={handleSignup}
                   >
                     회원가입 완료
                   </button>

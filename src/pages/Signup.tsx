@@ -1,11 +1,21 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import api from "../services/api";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useNavigationType,
+} from "react-router-dom";
 
 const Signup = () => {
+  const location = useLocation();
+  const { role } = location.state || {};
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailExists, setEmailExists] = useState(null);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const navigate = useNavigate();
 
   const handleEmailCheck = async () => {
     if (!email) {
@@ -40,10 +50,48 @@ const Signup = () => {
     }
   };
 
-  function handleClick(event) {
-    event.preventDefault();
-    window.location.href = "/join/info2";
-  }
+  const handleEmailSend = async () => {
+    if (!email) {
+      return alert("이메일을 입력해주세요.");
+    }
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_KEY}/email/send`,
+        { email: email }
+      );
+      if (response.status === 200) {
+        setCodeSent(true);
+        alert("인증번호가 전송되었습니다.");
+      }
+    } catch (error) {
+      console.error("인증번호 전송 중 요류 발생: ", error);
+      alert("인증번호 전송에 실패했습니다.");
+    }
+  };
+
+  const hanldeVerificationCodeCheck = async () => {
+    if (!name) {
+      return alert("이름을 입력해주세요.");
+    } else if (!email) {
+      return alert("이메일을 입력해주세요.");
+    } else if (!verificationCode) {
+      return alert("인증번호를 입력해주세요.");
+    }
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_KEY}/email/verify`,
+        { email, code: verificationCode }
+      );
+
+      if (response.status === 200) {
+        navigate("/join/info2", { state: { name, email, role } });
+      }
+    } catch (error) {
+      alert("인증번호가 틀렸습니다.");
+      console.log("인증번호 확인 중 오류 발생: ", error);
+    }
+  };
 
   return (
     <div className="grid place-content-center gap-4">
@@ -58,6 +106,8 @@ const Signup = () => {
             <input
               type="text"
               placeholder="성명"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="bg-lightGray01 placeholder-black text-2xl rounded-[10px] opacity-50 pl-[21px] py-4"
             />
             <div className="flex justify-between gap-3">
@@ -94,18 +144,22 @@ const Signup = () => {
                 <input
                   type="text"
                   placeholder="인증번호(6자리)"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
                   className="bg-lightGray01 placeholder-black text-2xl rounded-[10px] opacity-50 py-4 pl-[21px]"
                 />
                 <button
                   type="button"
                   className="bg-red01 opacity-50 text-white text-2xl rounded-[20px] py-3 px-3 flex-1"
+                  onClick={handleEmailSend}
                 >
                   인증번호 발송
                 </button>
               </div>
             )}
             <button
-              onClick={handleClick}
+              type="button"
+              onClick={hanldeVerificationCodeCheck}
               className="border-[1px] bg-transparent border-black rounded-[10px] text-black text-2xl py-3"
             >
               확인

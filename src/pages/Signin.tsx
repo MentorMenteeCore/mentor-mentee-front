@@ -26,9 +26,11 @@ const Signin = () => {
           if (keepLogin) {
             localStorage.setItem("token", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
+            localStorage.setItem("keepLogin", "true");
           } else {
             sessionStorage.setItem("token", accessToken);
             sessionStorage.setItem("refreshToken", refreshToken);
+            localStorage.removeItem("keepLogin");
           }
 
           if (res.status === 200) {

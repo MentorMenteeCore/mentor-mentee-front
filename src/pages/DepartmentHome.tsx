@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import api from "../services/api";
 
 // export async function getUniv(id: string) {
 //   const response = await fetch(``);
 //   return response.json();
 // }
 
-export default function DepartmentHome({
-  departmentId,
-}: {
-  departmentId: string;
-}) {
+export default function DepartmentHome() {
+  const { departmentId } = useParams();
+  const [mentors, setMentors] = useState([]);
+
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const response = await api.get(`coursementors/${departmentId}`);
+        setMentors(response.data);
+      } catch (error) {
+        console.log("Error fetching mentors:", error);
+      }
+    };
+
+    if (departmentId) {
+      fetchMentors();
+    }
+  }, [departmentId]);
+
   const [posts, getPosts] = useState({
     "1학년": [
       {
@@ -81,23 +97,39 @@ export default function DepartmentHome({
           정보통신학과
           <div className="bg-black h-1"></div>
           <select name="학과" onChange={handleSelect} value={selectedGrade}>
-            {grade.map((grade) => {
-              return (
-                <>
-                  <option value={grade.id}>{grade.gradeName}</option>
-                </>
-              );
-            })}
+            {grade.map((grade) => (
+              <option value={grade.id}>{grade.gradeName}</option>
+            ))}
           </select>
           <div>
-            {posts[selectedGrade].map((post) => {
-              {
-                post.courseName;
-              }
-            })}
+            {posts[selectedGrade]?.map((post) => (
+              <div key={post.courseName}>
+                <h3>{post.courseName}</h3>
+                {post.mentors.map((mentor) => (
+                  <div key={mentor.nickName}>
+                    {" "}
+                    {/* 고유한 key prop 추가 */}
+                    <p>{mentor.nickName}</p>
+                    <p>
+                      {mentor.gradeStatus}학년 / {mentor.courseName}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
-        <div className="bg-yellow-100 w-full">바이</div>
+        <div className="bg-yellow-100 w-full">
+          {/* {mentors.map((mentor) => {
+            <div key={mentor.id}>
+              <img alt={"프로필"} />
+              <p>{mentor.name}</p>
+              <p>
+                {mentor.grade}학년 / {mentor.departmentName}
+              </p>
+            </div>;
+          })} */}
+        </div>
       </div>
     </>
   );

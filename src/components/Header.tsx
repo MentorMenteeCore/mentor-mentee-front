@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Search } from "../assets/icons";
 import { useAuth } from "./AuthProvider";
 import { useEffect, useState } from "react";
@@ -9,11 +9,19 @@ export default function Header() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isDropdownOpen, setIsDropDownOpen] = useState(false);
+  const [isNicknameSearchPage, setIsNicknameSearchPage] = useState(false);
 
   const accessToken =
     localStorage.getItem("token") || sessionStorage.getItem("token");
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  //특정 경로에서만 nickname 검색 활성화
+  useEffect(() => {
+    const nicknameSearchPath = ["/departmentHome"];
+    setIsNicknameSearchPage(nicknameSearchPath.includes(location.pathname));
+  }, [location.pathname]);
 
   const handleSearch = async () => {
     if (!search.trim()) {
@@ -25,7 +33,7 @@ export default function Header() {
       let apiUrl = `${import.meta.env.VITE_API_KEY}/search`;
       const params = {};
 
-      if (isLoggedIn) {
+      if (isNicknameSearchPage) {
         apiUrl += `/user`;
         params.nickname = search;
       } else {
@@ -51,23 +59,6 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await logout();
-      // const accessToken =
-      //   localStorage.getItem("token") || sessionStorage.getItem("token");
-
-      // // Axios delete 요청 시 헤더 추가
-      // await axios.delete(`${import.meta.env.VITE_API_KEY}/user/logout`, {
-      //   data: {
-      //     token: accessToken, // 필요한 데이터 추가
-      //   },
-      //   headers: {
-      //     Authorization: `Bearer ${accessToken}`, // 토큰을 Authorization 헤더에 추가
-      //   },
-      // });
-
-      // // 토큰 제거
-      // localStorage.removeItem("token");
-      // sessionStorage.removeItem("token");
-
       navigate("/login");
     } catch (error) {
       console.log(
@@ -121,7 +112,7 @@ export default function Header() {
               <input
                 type="text"
                 className="outline-none w-full"
-                placeholder="찾고 싶은 유저 닉네임을 검색하세요"
+                placeholder="학과를 입력해주세요."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => {

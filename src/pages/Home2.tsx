@@ -1,32 +1,38 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import api from "../services/api";
+import axios from "axios";
 
 async function getHome(college: string) {
   try {
-    const response = await fetch(
+    const response = await axios.get(
       `${import.meta.env.VITE_API_KEY}/college/${college}`
     );
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
-    }
-    const json = await response.json();
 
-    if (!json || json.length === 0) {
+    if (!response.data || response.data.length === 0) {
       return [];
     }
 
-    return json;
+    return response.data;
   } catch (error) {
     console.error("Error fetching home data:", error);
     return [];
   }
 }
-
 export default function Home2() {
   const [uni] = useState([
     { collegeName: "인문대학", college: "humanities" },
+    { collegeName: "사회과학대학", college: "socialsciences" },
+    { collegeName: "자연과학대학", college: "naturescience" },
     { collegeName: "경영대학", college: "business" },
-    { collegeName: "교육대학", college: "education" },
+    { collegeName: "공과대학", college: "engineering" },
+    { collegeName: "전자정보대학", college: "computerengineering" },
+    { collegeName: "농업생명환경대", college: "agriculture" },
+    { collegeName: "사범대학", college: "education" },
+    { collegeName: "생활과학대학", college: "humanecology" },
+    { collegeName: "수의대학", college: "veterinarymedicine" },
+    { collegeName: "약학대학", college: "pharmacy" },
+    { collegeName: "의과대학", college: "medicine" },
   ]);
 
   const collegeMap = uni.reduce((map, u) => {
@@ -35,12 +41,13 @@ export default function Home2() {
   }, {});
 
   const location = useLocation();
+  const navigate = useNavigate();
   //search?departmentName=윤리교육과 일 때, ?departmentName=윤리교육과 반환
   const searchParams = new URLSearchParams(location.search);
   const departmentName = searchParams.get("departmentName");
   const [posts, setPosts] = useState([]);
   const [selectedCollege, setSelectedCollege] = useState(
-    departmentName || "education"
+    departmentName || "humanities"
   );
 
   const handleSelect = (e) => {
@@ -64,17 +71,20 @@ export default function Home2() {
     if (departmentName) {
       async function fetchDepartment() {
         try {
-          const response = await fetch(
+          const encodedDepartmentName = encodeURIComponent(departmentName);
+          const response = await axios.get(
             `${
               import.meta.env.VITE_API_KEY
-            }/search?departmentName=${encodeURIComponent(departmentName)}`
+            }/search?departmentName=${encodedDepartmentName}`
           );
-          const data = await response.json();
+          const data = await response.data;
+          console.log(response.data);
 
           if (data) {
             setPosts(Array.isArray(data) ? data : [data]);
 
             const collegeName = data.collegeName;
+
             if (collegeMap[collegeName]) {
               setSelectedCollege(collegeMap[collegeName]);
             }
@@ -110,7 +120,7 @@ export default function Home2() {
                 className="bg-lightGray02 grid grid-rows-2 shadow-md shadow-gray02"
               >
                 <img
-                  src={department.departmentImageUrl || "/im.jpg"}
+                  src={department.departmentImageUrl}
                   alt={department.departmentName}
                 />
                 <div></div>

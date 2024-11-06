@@ -14,11 +14,11 @@ import SettingInformation from "./pages/SettingInformation";
 import SettingNavigation from "./components/SettingNavigation";
 import ChangePW from "./pages/ChangePW";
 import Home2 from "./pages/Home2";
-import SignUp from "./pages/login";
 import DeleteAccount from "./pages/DeleteAccount";
 import Header from "./components/Header";
 import { AuthProvider } from "./components/AuthProvider";
 import Home from "./pages/Home";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -29,11 +29,23 @@ function App() {
           <Routes>
             <Route element={<Header />}>
               <Route path="/" element={<Home2 />} />
-              <Route path="/fakeHome" element={<Home />} />
-              <Route path="/logggg" element={<SignUp />} />
-              <Route path="/departmentHome/:id" element={<DepartmentHome />} />
+              <Route
+                path="/departmentHome/:departmentId"
+                element={
+                  <ProtectedRoute>
+                    <DepartmentHome />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/profile">
-                <Route path="mentor" element={<MentorProfile />} />
+                <Route
+                  path="mentor"
+                  element={
+                    <ProtectedRoute>
+                      <MentorProfile />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="mentor/edit" element={<EditMentorProfile />} />
                 <Route path="mentee" element={<MenteeProfile />} />
                 <Route path="mentee/edit" element={<EditMenteeProfile />} />

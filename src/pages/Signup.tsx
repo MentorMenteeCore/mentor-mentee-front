@@ -84,8 +84,12 @@ const Signup = () => {
         { email, code: verificationCode }
       );
 
-      if (response.status === 200) {
+      if (response.data === true) {
+        console.log(response);
         navigate("/join/info2", { state: { name, email, role } });
+      } else {
+        alert("인증번호가 틀렸습니다.");
+        console.log("인증번호 확인 중 오류 발생: ", response);
       }
     } catch (error) {
       alert("인증번호가 틀렸습니다.");

@@ -8,6 +8,7 @@ const Signup2 = () => {
   const { name, email, role } = location.state || {};
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [nicknameExists, setNicknameExists] = useState<boolean | null>(null);
   const [iconColor, setIconColor] = useState("#000");
   const [passwordType, setPasswordType] = useState({
@@ -60,6 +61,10 @@ const Signup2 = () => {
 
     if (!password) {
       return alert("비밀번호를 입력해주세요.");
+    }
+
+    if (password !== confirmPassword) {
+      return alert("비밀번호가 일치하지 않습니다.");
     }
 
     try {

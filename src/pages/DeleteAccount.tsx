@@ -1,18 +1,34 @@
 import { useRef } from "react";
+import { useState } from "react";
 
 export default function DeleteAccount() {
   const checkboxRef = useRef(null);
+  const [email, setEmail] = useState("");
 
-  function handleClick(event) {
-    event.preventDefault();
-
+  const handleDeleteAccount = async () => {
     if (!checkboxRef.current.checked) {
       alert("주의사항을 모두 확인하셔야 회원 탈퇴 가능합니다.");
       return;
     }
-    alert("회원 탈퇴가 완료되었습니다.");
-    window.location.href = "/";
-  }
+    if (!email) {
+      alert("Email을 입력해주세요.");
+    }
+    try {
+      const response = await api.delete(`/user`, {
+        params: { useremail: email },
+      });
+      if (response.status === 200) {
+        alert("회원탈퇴가 완료되었습니다.");
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data.message === "유저의 이메일이 적합하지 않습니다."
+      ) {
+        alert(error.response.data.message);
+      }
+    }
+  };
   return (
     <>
       <div>
@@ -63,7 +79,7 @@ export default function DeleteAccount() {
           <button
             type="submit"
             className="text-red01 border-2 border-black text-2xl rounded-[20px] py-4 px-9 w-max justify-self-end"
-            onClick={handleClick}
+            onClick={handleDeleteAccount}
           >
             회원 탈퇴
           </button>

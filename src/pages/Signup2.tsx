@@ -67,6 +67,10 @@ const Signup2 = () => {
       return alert("비밀번호가 일치하지 않습니다.");
     }
 
+    if (password.length < 5 || password.length > 15) {
+      return alert("비밀번호는 5글자 이상, 15글자 미만이어야 합니다.");
+    }
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_KEY}/user/sign-up`,
@@ -141,6 +145,9 @@ const Signup2 = () => {
                       <label className="relative block">
                         <input
                           type={passwordType.type}
+                          onChange={(e) => {
+                            setConfirmPassword(e.target.value);
+                          }}
                           placeholder="비밀번호를 한번 더 입력해 주세요."
                           className="bg-lightGray01 placeholder-black opacity-50 text-2xl rounded-[10px] w-full pl-[21px] py-4"
                         />

@@ -23,15 +23,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     const accessToken =
       localStorage.getItem("token") || sessionStorage.getItem("token");
+    console.log("api 호출 ");
     try {
       const response = await api.delete("/user/logout", {
         headers: {
-          Authorization: `Bearer ${{ accessToken }}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         data: {
           token: accessToken,
         },
       });
+      console.log(response.status);
 
       // 로그아웃 성공 확인
       if (response.status === 200) {

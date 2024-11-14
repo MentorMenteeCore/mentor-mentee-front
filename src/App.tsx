@@ -46,7 +46,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="mentor/edit" element={<EditMentorProfile />} />
+                <Route
+                  path="mentor/edit"
+                  element={
+                    <ProtectedRoute>
+                      <EditMentorProfile />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="mentee" element={<MenteeProfile />} />
                 <Route path="mentee/edit" element={<EditMenteeProfile />} />
               </Route>

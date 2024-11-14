@@ -62,6 +62,7 @@ const SettingInformation = () => {
     } else {
       const updatedField = { [field]: userInfo[field] };
       console.log("Updating field:", updatedField);
+
       const updateField = async () => {
         try {
           const accessToken =
@@ -120,13 +121,19 @@ const SettingInformation = () => {
                   {isEditable.userNickname ? "수정" : "저장"}
                 </button>
               </div>
-              <div className="border-2 border-black rounded-[15px] px-5 py-2 text-2xl bg-lightGray02">
+              <div
+                className={`border-2 border-black rounded-[15px] px-5 py-2 text-2xl bg-lightGray02 ${
+                  !isEditable.userNickname ? "bg-white" : ""
+                }`}
+              >
                 <input
                   type="text"
                   value={userInfo.userNickname}
                   readOnly={isEditable.userNickname}
                   onChange={(e) => handleChange(e, "userNickname")}
-                  className="bg-lightGray02 text-slate-600 outline-none"
+                  className={`bg-lightGray02 text-slate-600 outline-none ${
+                    !isEditable.userNickname ? "bg-white" : ""
+                  }`}
                 />
               </div>
             </div>
@@ -153,13 +160,19 @@ const SettingInformation = () => {
                   {isEditable.userDepartment ? "수정" : "저장"}
                 </button>
               </div>
-              <div className="border-2 border-black rounded-[15px] px-5 py-2 text-2xl bg-lightGray02">
+              <div
+                className={`border-2 border-black rounded-[15px] px-5 py-2 text-2xl bg-lightGray02 ${
+                  !isEditable.userDepartment ? "bg-white" : ""
+                }`}
+              >
                 <input
                   type="text"
                   value={userInfo.userDepartment || ""}
                   readOnly={isEditable.userDepartment}
                   onChange={(e) => handleChange(e, "userDepartment")}
-                  className="bg-lightGray02 text-slate-600 outline-none"
+                  className={`bg-lightGray02 text-slate-600 outline-none ${
+                    !isEditable.userDepartment ? "bg-white" : ""
+                  }`}
                 />
               </div>
             </div>
@@ -173,14 +186,27 @@ const SettingInformation = () => {
                   {isEditable.yearInUni ? "수정" : "저장"}
                 </button>
               </div>
-              <div className="border-2 border-black rounded-[15px] px-5 py-2 text-2xl bg-lightGray02">
-                <input
-                  type="text"
+              <div
+                className={`border-2 border-black rounded-[15px] px-5 py-2 text-2xl bg-lightGray02 ${
+                  !isEditable.yearInUni ? "bg-white" : ""
+                }`}
+              >
+                <select
                   value={userInfo.yearInUni}
-                  readOnly={isEditable.yearInUni}
                   onChange={(e) => handleChange(e, "yearInUni")}
-                  className="bg-lightGray02 text-slate-600 outline-none"
-                />
+                  disabled={isEditable.yearInUni}
+                  className={`bg-lightGray02 text-slate-600 outline-none w-full pr-10 ${
+                    !isEditable.yearInUni ? "bg-white" : ""
+                  }`}
+                >
+                  <option value="DEFAULT" disabled>
+                    학년 선택
+                  </option>
+                  <option value="1">1학년</option>
+                  <option value="2">2학년</option>
+                  <option value="3">3학년</option>
+                  <option value="4">4학년</option>
+                </select>
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ async function getHome(college: string) {
     const response = await axios.get(
       `${import.meta.env.VITE_API_KEY}/college/${college}`
     );
+    console.log("getHome function 작동");
 
     if (!response.data || response.data.length === 0) {
       return [];
@@ -19,6 +20,7 @@ async function getHome(college: string) {
     return [];
   }
 }
+
 export default function Home2() {
   const [uni] = useState([
     { collegeName: "인문대학", college: "humanities" },
@@ -42,32 +44,30 @@ export default function Home2() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  //search?departmentName=윤리교육과 일 때, ?departmentName=윤리교육과 반환
   const searchParams = new URLSearchParams(location.search);
   const departmentName = searchParams.get("departmentName");
+
   const [posts, setPosts] = useState([]);
   const [selectedCollege, setSelectedCollege] = useState(
-    departmentName || "humanities"
+    departmentName ? collegeMap[departmentName] : "humanities"
   );
 
   const handleSelect = (e) => {
     setSelectedCollege(e.target.value);
   };
 
-  // 드롭다운에서 대학 선택 시 데이터 서버에서 가져오고 posts 저장
   useEffect(() => {
     async function fetchPosts() {
-      const data = await getHome(selectedCollege);
+      let data = await getHome(selectedCollege);
       setPosts(Array.isArray(data) ? data : [data]);
     }
-    if (selectedCollege) {
+    if (selectedCollege && !departmentName) {
       fetchPosts();
     }
-  }, [selectedCollege]);
+  }, [selectedCollege, departmentName]);
 
-  // 학과 검색 시
   useEffect(() => {
-    // departmentName이 URL 쿼리 파라미터에 존재할 경우
+    console.log("useEffect 실행, departmentName:", departmentName);
     if (departmentName) {
       async function fetchDepartment() {
         try {
@@ -77,26 +77,47 @@ export default function Home2() {
               import.meta.env.VITE_API_KEY
             }/search?departmentName=${encodedDepartmentName}`
           );
-          const data = await response.data;
-          console.log(response.data);
+          let data = await response.data;
+          console.log(data);
 
           if (data) {
-            setPosts(Array.isArray(data) ? data : [data]);
-
             const collegeName = data.collegeName;
+            console.log("데이터:", data);
+            console.log("collegeName:", collegeName);
 
-            if (collegeMap[collegeName]) {
+            if (collegeName && collegeMap[collegeName]) {
               setSelectedCollege(collegeMap[collegeName]);
+              console.log(
+                "setSelectedCollege 실행됨:",
+                collegeMap[collegeName]
+              );
             }
+
+            if (!Array.isArray(data)) {
+              data = [data]; // 단일 객체인 경우 배열로 감싸기
+            }
+
+            const filteredData = data.filter(
+              (department) => department.departmentName === departmentName
+            );
+            console.log("필터링된 데이터: ", filteredData);
+            setPosts(filteredData); // 필터링된 데이터만 상태에 설정
           }
         } catch (error) {
           console.error("Error fetching department data:", error);
-          setPosts([]);
+          setPosts([]); // 에러 발생 시 빈 배열로 설정
         }
       }
       fetchDepartment();
+    } else {
+      setPosts([]);
+      setSelectedCollege("humanities"); // departmentName 없을 경우 기본값 설정
     }
-  }, [departmentName]);
+  }, [departmentName]); // departmentName이 변경될 때만 실행
+
+  useEffect(() => {
+    console.log("Updated posts: ", posts);
+  }, [posts]);
 
   return (
     <div className="grid px-5 pt-4">

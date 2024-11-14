@@ -1,9 +1,12 @@
-import { useRef } from "react";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
+import api from "../services/api";
 
 export default function DeleteAccount() {
   const checkboxRef = useRef(null);
   const [email, setEmail] = useState("");
+
+  const navigate = useNavigate();
 
   const handleDeleteAccount = async () => {
     if (!checkboxRef.current.checked) {
@@ -13,17 +16,30 @@ export default function DeleteAccount() {
     if (!email) {
       alert("Email을 입력해주세요.");
     }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      return alert("올바른 이메일 형식이 아닙니다.");
+    }
+
     try {
       const response = await api.delete(`/user`, {
         params: { useremail: email },
+        data: { userEmail: email },
       });
       if (response.status === 200) {
         alert("회원탈퇴가 완료되었습니다.");
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("refreshToken");
+        console.log("회원탈퇴 성공");
+        window.location.replace("/");
       }
     } catch (error) {
       if (
         error.response &&
-        error.response.data.message === "유저의 이메일이 적합하지 않습니다."
+        error.response.data.message === "잘못된 이메일입니다."
       ) {
         alert(error.response.data.message);
       }
@@ -40,6 +56,7 @@ export default function DeleteAccount() {
               <input
                 className="px-2 w-full text-lg outline-none"
                 type="email"
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="LOGO에 가입하신 이메일을 적어주세요."
               />
             </div>

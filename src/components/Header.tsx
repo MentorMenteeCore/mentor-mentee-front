@@ -11,6 +11,13 @@ export default function Header() {
   const [searchNickname, setSearchNickname] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isDropdownOpen, setIsDropDownOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    userNickname: "",
+    userEmail: "",
+    userDepartment: "",
+    yearInUni: "",
+    userImageUrl: "",
+  });
   const [isNicknameSearchPage, setIsNicknameSearchPage] = useState(false);
   const [selectedSearchType, setSelectedSearchType] =
     useState("departmentName");
@@ -54,6 +61,7 @@ export default function Header() {
 
       console.log("API 요청 URL:", apiUrl);
       console.log("요청 파라미터:", params);
+      console.log(response.data);
 
       setSearchResults(response.data);
     } catch (error) {
@@ -83,6 +91,7 @@ export default function Header() {
     try {
       const response = await api.get(`/user?page=0&size=100`);
       const data = response.data;
+      console.log(data);
 
       if (data.courseDetails && data.availabilities) {
         navigate("/profile/mentor/edit");
@@ -97,8 +106,7 @@ export default function Header() {
   const resetSearch = () => {
     setSearchDepartment("");
     setSearchResults([]);
-    window.location.replace("/"); //느린 게 단점인데... 나중에 고쳐보자
-    // navigate("/");
+    navigate("/");
   };
 
   useEffect(() => {
@@ -118,6 +126,40 @@ export default function Header() {
     };
   }, [isDropdownOpen]);
 
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const accessToken =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!accessToken) {
+        console.error("Access token is missing");
+        return;
+      }
+      try {
+        const response = await api.get(`/user/information`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const {
+          userNickname,
+          userEmail,
+          userDepartment,
+          yearInUni,
+          userImageUrl,
+        } = response.data;
+        setUserInfo({
+          userNickname,
+          userEmail,
+          userDepartment,
+          yearInUni,
+          userImageUrl,
+        });
+      } catch (error) {
+        console.error("Failed to fetch user information:", error);
+      }
+    };
+    fetchUserInfo();
+  }, [userInfo.userImageUrl]);
   return (
     <>
       {isLoggedIn ? (
@@ -200,12 +242,12 @@ export default function Header() {
                 <Link to={"/"}>알림</Link>
               </li>
               <li>
-                <div
+                <img
                   onClick={toggleDropdown}
-                  className="bg-lightGray01 rounded-[10px] px-[25px] py-[15px] cursor-pointer"
-                >
-                  -
-                </div>
+                  className="bg-lightGray01 rounded-[10px] w-[60px] h-[60px] rounded-full cursor-pointer"
+                  src={userInfo.userImageUrl}
+                />
+
                 {isDropdownOpen && (
                   <div className="absolute right-10 mt-2 bg-white border-2 border-black/50 rounded-xl shadow-md py-2 dropdown-menu">
                     <div className="pl-5 pr-12 py-2 hover:bg-lightGray01/50 cursor-pointer">

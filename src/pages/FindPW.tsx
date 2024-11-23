@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 
 const FindPW = () => {
   const [email, setEmail] = useState("");
-  
 
   const handlePwChange = async () => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,7 +41,7 @@ const FindPW = () => {
             </Link>
           </div>
           <form className="flex justify-center content-between">
-            <div className="grid gap-4">
+            <div className="grid gap-4 w-1/3">
               <h2 className="text-black text-2xl underline pb-2">
                 비밀번호 찾기
               </h2>
@@ -56,7 +55,7 @@ const FindPW = () => {
               <button
                 type="button"
                 onClick={handlePwChange}
-                className="border-[1px] bg-lightGray02 border-black rounded-[10px] text-black text-2xl py-3 px-6"
+                className="border-[1px] bg-lightGray02 border-black rounded-[10px] text-black text-2xl py-3 px-6 "
               >
                 임시 비밀번호 받기
               </button>

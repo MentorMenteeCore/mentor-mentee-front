@@ -79,6 +79,7 @@ export default function Home2() {
             }/search?departmentName=${encodeURIComponent(departmentName)}`
           );
           const data = response.data || [];
+          console.log(data);
           setPosts(Array.isArray(data) ? data : [data]);
           const collegeName = data.collegeName;
           if (collegeName && collegeMap[collegeName]) {
@@ -118,7 +119,7 @@ export default function Home2() {
             <div className="grid" key={department.departmentId}>
               <Link
                 to={`/DepartmentHome/${department.departmentId}`}
-                className="bg-lightGray02 grid grid-rows-2 shadow-md shadow-gray02"
+                className="bg-lightGray02 grid shadow-md shadow-gray02 "
               >
                 <img
                   src={department.departmentImageUrl}

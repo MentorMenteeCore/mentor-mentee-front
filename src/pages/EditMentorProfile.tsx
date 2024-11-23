@@ -6,8 +6,8 @@ const EditMentorProfile = () => {
       <div className="content-center">
         <div className="flex justify-between px-10 py-10 pr-11">
           {/*왼쪽 프로필*/}
-          <div className="w-4/12 flex justify-center">
-            <div className="fixed">
+          <div className="w-4/12 flex justify-center h-min mt-5 sticky top-[200px]">
+            <div className="">
               <p className="text-[28px] pb-2 font-bold">Mentor</p>
               <div className="flex justify-center mb-[10px]">
                 <img src="/profile.png" />
@@ -23,7 +23,7 @@ const EditMentorProfile = () => {
                 <textarea
                   className="text-xl w-full outline-none resize-none row-5 overflow-hidden"
                   value="안녕하세요! 궁금한 거 있으시면 언제든 연락주세요!0!"
-                  onInput={handleResizeHeight}
+                  // onInput={}
                 />
               </div>
             </div>

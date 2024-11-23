@@ -21,20 +21,22 @@ const Signin = () => {
           password: inputPw,
         })
         .then((res) => {
-          const { accessToken, refreshToken } = res.data;
+          const { accessToken, refreshToken, userId } = res.data;
 
           if (keepLogin) {
             localStorage.setItem("token", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
             localStorage.setItem("keepLogin", "true");
+            localStorage.setItem("userId", userId);
           } else {
             sessionStorage.setItem("token", accessToken);
             sessionStorage.setItem("refreshToken", refreshToken);
             localStorage.removeItem("keepLogin");
+            sessionStorage.setItem("userId", userId);
           }
 
           if (res.status === 200) {
-            console.log("로그인");
+            console.log("로그인", res.data);
             window.location.replace("/");
           }
         })

@@ -38,22 +38,8 @@ function App() {
                 }
               />
               <Route path="/profile">
-                <Route
-                  path="mentor"
-                  element={
-                    <ProtectedRoute>
-                      <MentorProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="mentor/edit"
-                  element={
-                    <ProtectedRoute>
-                      <EditMentorProfile />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="mentor" element={<MentorProfile />} />
+                <Route path="mentor/edit" element={<EditMentorProfile />} />
                 <Route path="mentee" element={<MenteeProfile />} />
                 <Route path="mentee/edit" element={<EditMenteeProfile />} />
               </Route>

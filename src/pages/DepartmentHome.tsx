@@ -14,7 +14,7 @@ export default function DepartmentHome() {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const response = await api.get(`coursementors/${departmentId}`);
+        const response = await api.get(`mentorlist/${departmentId}`);
         setMentors(response.data);
       } catch (error) {
         console.log("Error fetching mentors:", error);

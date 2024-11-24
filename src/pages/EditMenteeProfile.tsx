@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const EditMenteeProfile = () => {
   const [menteeData, setMenteeData] = useState({
@@ -20,6 +20,7 @@ const EditMenteeProfile = () => {
   const [deletedCourseList, setDeletedCourseList] = useState([]);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Mentee Data 불러오기 (페이지 들어올 때마다 실행[location])
   const fetchMenteeProfile = async () => {
@@ -79,6 +80,7 @@ const EditMenteeProfile = () => {
       ),
     ];
 
+    // 삭제된 과목 제외 새로운 선호 방식 리스트
     const updatedMethodList = [
       ...menteeData.menteePreferredTeachingMethodDtoList.filter(
         (method) =>
@@ -95,7 +97,7 @@ const EditMenteeProfile = () => {
       menteePreferredTeachingMethodDtoList: updatedMethodList,
     };
 
-    console.log("업데이트 포함된 정보들: ", updatePayload);
+    console.log("업데이트한 정보들: ", updatePayload);
 
     try {
       const patchResponse = await api.patch(`user/mentee`, updatePayload, {
@@ -103,12 +105,12 @@ const EditMenteeProfile = () => {
           "Content-Type": "application/json",
         },
       });
-      console.log("patchResponse data:", patchResponse);
+      console.log("patch 응답 데이터:", patchResponse);
 
       if (patchResponse.status === 200) {
         const updatedMenteeProfile = await fetchMenteeProfile();
 
-        console.log("Updated mentee profile:", updatedMenteeProfile);
+        console.log("업데이트된 멘티 데이터", updatedMenteeProfile);
         // 새로 갱신된 데이터를 상태에 반영
         setMenteeData(updatedMenteeProfile);
         setDeletedCourseList([]);
@@ -218,6 +220,22 @@ const EditMenteeProfile = () => {
     setNewCourseList(updatedCourses);
   };
 
+  //역할 전환
+  const handleSwitchToMentor = async () => {
+    try {
+      const response = await api.post(`/user/role`);
+      if (response.status === 200) {
+        alert("멘토로 전환되었습니다!");
+        navigate("/profile/mentor/edit");
+      } else {
+        alert("멘토 전환에 실패했습니다. 다시 시도해주세요. ");
+      }
+    } catch (error) {
+      console.log("Failed to switch to mentor", error);
+      alert("멘토 전환 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <>
       <div className="content-center ">
@@ -232,7 +250,10 @@ const EditMenteeProfile = () => {
                 />
               </div>
               <div className="flex justify-center mt-2">
-                <button className="border-2 border-[#D9D9D9] rounded-[20px] px-[27px] py-[6px] text-xl">
+                <button
+                  className="border-2 border-[#D9D9D9] rounded-[20px] px-[27px] py-[6px] text-xl hover:bg-red01 hover:opacity-50 hover:text-white"
+                  onClick={handleSwitchToMentor}
+                >
                   멘토로 전환
                 </button>
               </div>

@@ -26,6 +26,7 @@ export default function Header() {
     localStorage.getItem("token") || sessionStorage.getItem("token");
 
   const navigate = useNavigate();
+  const locaton = useLocation();
 
   const handleSearch = async () => {
     // 검색어 없을 경우

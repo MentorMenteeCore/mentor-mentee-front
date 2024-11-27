@@ -96,7 +96,9 @@ export default function Header() {
 
       if (data.courseDetails && data.availabilities) {
         navigate("/profile/mentor/edit");
+        console.log(data);
       } else {
+        console.log(data);
         navigate("/profile/mentee/edit");
       }
     } catch (error) {
@@ -252,15 +254,14 @@ export default function Header() {
                 {isDropdownOpen && (
                   <div className="absolute right-10 mt-2 bg-white border-2 border-black/50 rounded-xl shadow-md py-2 dropdown-menu">
                     <div className="pl-5 pr-12 py-2 hover:bg-lightGray01/50 cursor-pointer">
-                      <Link
-                        to="/profile/mentor"
+                      <button
                         onClick={() => {
                           toggleDropdown();
                           handleProfileClick();
                         }}
                       >
                         내 정보
-                      </Link>
+                      </button>
                     </div>
                     <div
                       className="pl-5 pr-12 py-2 hover:bg-lightGray01/50 cursor-pointer"

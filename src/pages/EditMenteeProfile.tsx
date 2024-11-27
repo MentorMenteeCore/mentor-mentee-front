@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  createRoutesFromElements,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 const EditMenteeProfile = () => {
   const [menteeData, setMenteeData] = useState({
@@ -18,7 +22,9 @@ const EditMenteeProfile = () => {
     { menteePreferredTeachingMethod: "" },
   ]);
   const [deletedCourseList, setDeletedCourseList] = useState([]);
-  const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [showNewCourseList, setShowNewCourseList] = useState(false);
+  const [showNewMethodList, setShowNewMethodList] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -54,25 +60,46 @@ const EditMenteeProfile = () => {
       (course) => course.courseName.trim() !== ""
     );
 
-    const isValidMethods = newPreferMethodList.every(
-      (method) => method.menteePreferredTeachingMethod.trim() !== ""
+    const filteredCourseList = newCourseList.filter(
+      (course) =>
+        course.courseName.trim() !== "" && course.isMajor.trim() !== ""
     );
 
-    if (!isValid) {
-      alert("새 과목명을 입력해주세요!");
-      return; //저장 막기
-    } else if (!isValidMethods) {
-      alert("선호 방식을 입력해주세요!");
-      return;
-    }
+    const filteredMethodList = newPreferMethodList.filter(
+      (method) => method.menteePreferredTeachingMethod.trim !== ""
+    );
+
+    console.log("필터링된 과목 리스트", filteredCourseList);
+    console.log("필터링된 수업 방식 리스트", filteredMethodList);
+
+    const convertMajorStatus = (isMajor) => {
+      if (!isMajor) {
+        return "NOTMAJOR";
+      } else {
+        return isMajor;
+      }
+    };
+
+    // if (!isValid) {
+    //   alert("새 과목명을 입력해주세요!");
+    //   return; //저장 막기
+    // } else if (!isValidMethods) {
+    //   alert("선호 방식을 입력해주세요!");
+    //   return;
+    // }
 
     // 삭제된 과목을 제외한 새로운 과목 리스트
     const updatedCourseList = [
-      ...menteeData.userCourseList.filter(
-        (course) =>
-          !deletedCourseList.some((deleted) => deleted.id === course.id)
-      ),
-      ...newCourseList.filter(
+      ...menteeData.userCourseList
+        .filter(
+          (course) =>
+            !deletedCourseList.some((deleted) => deleted.id === course.id)
+        )
+        .map((course) => ({
+          ...course,
+          isMajor: convertMajorStatus(course.isMajor),
+        })),
+      ...filteredCourseList.filter(
         (course) =>
           !menteeData.userCourseList.some(
             (existing) => existing.id === course.id
@@ -84,9 +111,14 @@ const EditMenteeProfile = () => {
     const updatedMethodList = [
       ...menteeData.menteePreferredTeachingMethodDtoList.filter(
         (method) =>
-          !newPreferMethodList.some((newMethod) => newMethod.id === method.id)
+          !newPreferMethodList.some((deleted) => deleted.id === method.id)
       ),
-      ...newPreferMethodList,
+      ...filteredMethodList.filter(
+        (method) =>
+          !menteeData.menteePreferredTeachingMethodDtoList.some(
+            (existing) => existing.id === method.id
+          )
+      ),
     ];
 
     // 최종 데이터 (selfIntroduction, preferredTeachingMethod 포함)
@@ -137,19 +169,21 @@ const EditMenteeProfile = () => {
 
   // 과목 -> + 버튼 클릭 시
   const handleAddCourse = () => {
-    setNewCourseList([
-      ...newCourseList,
-      { courseName: "", isMajor: "NOTMAJOR", id: new Date().getTime() },
-    ]);
-    setIsAddingCourse(true);
+    setShowNewCourseList(true);
+    // setNewCourseList([
+    //   ...newCourseList,
+    //   { courseName: "", isMajor: "NOTMAJOR", id: new Date().getTime() },
+    // ]);
+    // setIsAddingCourse(true);
   };
 
   // 선호방식 -> + 버튼 클릭 시
   const handleAddPreferMethod = () => {
-    setNewPreferMethodList([
-      ...newPreferMethodList,
-      { menteePreferredTeachingMethod: "" },
-    ]);
+    setShowNewMethodList(true);
+    // setNewPreferMethodList([
+    //   ...newPreferMethodList,
+    //   { menteePreferredTeachingMethod: "" },
+    // ]);
   };
 
   // 과목 -> - 버튼 클릭 시
@@ -243,6 +277,9 @@ const EditMenteeProfile = () => {
           {/* 왼쪽 프로필 */}
           <div className="flex justify-center w-4/12 h-min mt-5 sticky top-[200px]">
             <div className="w-full">
+              <div>
+                <p className="text-2xl font-bold">Mentee</p>
+              </div>
               <div className="flex justify-center">
                 <img
                   src={menteeData.menteeImageUrl}
@@ -362,11 +399,14 @@ const EditMenteeProfile = () => {
                         </div>
                       ))
                     : !isEditing && (
-                        <p className="pt-10 pl-5">이수 교과목이 없습니다.</p>
+                        <p className="text-gray-500 text-base pl-5 pt-2">
+                          현재 등록된 교과목이 없습니다.
+                        </p>
                       )}
 
                   {/* 추가 버튼 클릭 시 input */}
                   {isEditing &&
+                    showNewCourseList &&
                     newCourseList.map((course, index) => (
                       <div className="flex justify-start items-center mb-2">
                         <input
@@ -458,13 +498,14 @@ const EditMenteeProfile = () => {
                         )
                       )
                     : !isEditing && (
-                        <p className="pt-10 pl-5">
-                          선호하는 수업 방식이 없습니다.
+                        <p className="text-gray-500 text-base pl-5 pt-2">
+                          현재 등록된 정보가 없습니다.
                         </p>
                       )}
                 </div>
                 {/* 추가 버튼 클릭 시 input */}
                 {isEditing &&
+                  showNewMethodList &&
                   newPreferMethodList.map((method, index) => (
                     <div
                       className="flex justify-start items-center mb-2"

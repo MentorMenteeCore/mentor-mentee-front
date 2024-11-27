@@ -55,7 +55,7 @@ const MentorProfile = () => {
     SUNDAY: "일요일",
   };
 
-  const renderStart = (rate) => {
+  const renderStars = (rate) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       if (i <= rate) {
@@ -88,7 +88,9 @@ const MentorProfile = () => {
             <div className="w-full h-1 bg-black"></div>
             <div className="flex justify-center pt-4">
               <p className="text-xl py-1 px-10">
-                {mentorData.selfIntroduction}
+                {mentorData.selfIntroduction.length > 0
+                  ? mentorData.selfIntroduction
+                  : "안녕하세요-!"}
               </p>
             </div>
           </div>
@@ -101,24 +103,31 @@ const MentorProfile = () => {
             <h2 className="text-[22px] font-bold">연락 가능 시간</h2>
             <div className="w-full h-1 bg-black mt-3 mb-5"></div>
             <div className="pl-2">
-              {mentorData.availabilities.map((day, index) => (
-                <div className="flex mb-[11px]" key={index}>
-                  <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[11px] py-[6px] mr-[21px]">
-                    <p className="content-center text-xl">
-                      {dayOfWeekMap[day.dayOfWeek]}
-                    </p>
+              {mentorData.availabilities &&
+              mentorData.availabilities.length > 0 ? (
+                mentorData.availabilities.map((day) => (
+                  <div className="flex mb-[11px]" key={day.id}>
+                    <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[11px] py-[6px] mr-[21px]">
+                      <p className="content-center text-xl">
+                        {dayOfWeekMap[day.dayOfWeek]}
+                      </p>
+                    </div>
+                    <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[14px] py-[6px]">
+                      <p className="content-center text-xl mr-1">
+                        {day.availableStartTime.substring(0, 5)}
+                      </p>
+                      <p className="content-center text-xl mr-1"> ~ </p>
+                      <p className="content-center text-xl">
+                        {day.availableEndTime.substring(0, 5)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[14px] py-[6px]">
-                    <p className="content-center text-xl mr-1">
-                      {day.availableStartTime.substring(0, 5)}
-                    </p>
-                    <p className="content-center text-xl mr-1"> ~ </p>
-                    <p className="content-center text-xl">
-                      {day.availableEndTime.substring(0, 5)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-base pl-5">
+                  현재 등록된 시간이 없습니다.
+                </p>
+              )}
             </div>
           </section>
 
@@ -134,25 +143,34 @@ const MentorProfile = () => {
                 <div className="flex justify-start px-5 py-1 ml-1">
                   <p className="content-center text-xl">학점 수</p>
                 </div>
-                <div className="flex justify-start px-5 py-1 ml-1">
+                <div className="flex justify-start px-5 py-1">
                   <p className="content-center text-xl">성적</p>
                 </div>
               </div>
-              {mentorData.courseDetails.map((course, index) => (
-                <div key={index} className="flex items-center mb-2">
-                  <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2">
-                    <p className="content-center text-xl">
-                      {course.courseName}
-                    </p>
+              {mentorData.courseDetails &&
+              mentorData.courseDetails.length > 0 ? (
+                mentorData.courseDetails.map((course) => (
+                  <div key={course.id} className="flex items-center mb-2">
+                    <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2">
+                      <p className="content-center text-xl">
+                        {course.courseName}
+                      </p>
+                    </div>
+                    <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10">
+                      <p className="text-xl text-center m-0">{course.credit}</p>
+                    </div>
+                    <div className="bg-lightGray02 rounded-[15px] justify-start px-4 py-2 ml-11">
+                      <p className="text-center text-xl">
+                        {course.gradeStatus}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10">
-                    <p className="text-xl text-center m-0">{course.credit}</p>
-                  </div>
-                  <div className="bg-lightGray02 rounded-[15px] justify-start px-4 py-2 ml-11">
-                    <p className="text-center text-xl">{course.gradeStatus}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-base pl-5 pt-2">
+                  현재 등록된 수업이 없습니다.
+                </p>
+              )}
             </div>
           </section>
 
@@ -188,21 +206,23 @@ const MentorProfile = () => {
               {/* 별 간격 고치기 */}
               {mentorData.reviews?.length > 0 ? (
                 mentorData.reviews.map((review, index) => (
-                  <div className="mb-[57px]" key={index}>
-                    <div className="flex mb-[15px]">
-                      <div className="flex w-1/2 justify-around mr-[13px]">
+                  <div className="mb-10 pl-3" key={index}>
+                    <div className="flex mb-4 ">
+                      <div className="grid grid-cols-5 gap-2 justify-around mr-5">
                         {renderStars(review.rate)}
                       </div>
-                      <div className="w-0.5 bg-black mr-[5px]"></div>
-                      <p className="text-[22px] font-bold">
+                      <div className="w-0.5 bg-black mr-3"></div>
+                      <p className="text-lg font-bold">
                         {review.reviewDate?.replace(/-/g, ".")}
                       </p>
                     </div>
-                    <p className="text-[22px] font-bold">{review.comment}</p>
+                    <p className="text-xl font-bold">{review.comment}</p>
                   </div>
                 ))
               ) : (
-                <p>No reviews available</p>
+                <p className="text-gray-500 text-base pl-5 pt-2">
+                  현재 등록된 후기가 없습니다.
+                </p>
               )}
             </div>
 

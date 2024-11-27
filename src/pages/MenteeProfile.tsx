@@ -116,7 +116,9 @@ const MenteeProfile = () => {
                       </div>
                     ))
                   ) : (
-                    <div>No courses available</div>
+                    <p className="text-gray-500 text-base pl-5 pt-2">
+                      현재 등록된 교과목이 없습니다.
+                    </p>
                   )}
                 </div>
               </div>
@@ -146,7 +148,9 @@ const MenteeProfile = () => {
                         )
                       )
                     ) : (
-                      <div>No preferred teaching methods available</div>
+                      <p className="text-gray-500 text-base pl-5 pt-2">
+                        현재 등록된 선호 수업 방식이 없습니다.
+                      </p>
                     )}
                   </div>
                 </div>

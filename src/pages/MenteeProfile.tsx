@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useParams } from "react-router-dom";
 
 const MenteeProfile = () => {
+  const { nickname } = useParams();
   const [menteeData, setMenteeData] = useState({
     menteeImageUrl: "",
     selfIntroduction: "",
@@ -18,12 +20,21 @@ const MenteeProfile = () => {
         return;
       }
       try {
-        const response = await api.get(`/user?page=0&size=100`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        if (response) {
+        let response;
+        if (nickname) {
+          response = await api.get(`/search/user?nickname=${nickname}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        } else {
+          response = await api.get(`/mentordetails/update?page=0`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        }
+        if (response && response.data) {
           const data = response.data;
           console.log(response);
           setMenteeData(data);

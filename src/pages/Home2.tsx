@@ -125,11 +125,10 @@ export default function Home2() {
                   src={department.departmentImageUrl}
                   alt={department.departmentName}
                 />
-                <div></div>
               </Link>
               <Link
                 to={`/DepartmentHome/${department.departmentId}`}
-                className="justify-self-center py-3 text-[22px]"
+                className="justify-self-center py-3 text-xl"
               >
                 {department.departmentName}
               </Link>

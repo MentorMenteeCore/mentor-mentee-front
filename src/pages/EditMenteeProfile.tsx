@@ -13,6 +13,7 @@ const EditMenteeProfile = () => {
     userCourseList: [],
     menteePreferredTeachingMethodDtoList: [],
     menteeNickName: "",
+    gradeStatus: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [newCourseList, setNewCourseList] = useState([
@@ -240,6 +241,17 @@ const EditMenteeProfile = () => {
     setNewCourseList(updatedCourses);
   };
 
+  const handleInputGrade = (e, index) => {
+    setNewCourseList((prevList) => {
+      const updatedGrade = [...prevList];
+      updatedGrade[index] = {
+        ...updatedGrade[index],
+        gradeStatus: e.target.value,
+      };
+      return updatedGrade;
+    });
+  };
+
   const handleMethodInputChange = (e, index) => {
     const { value } = e.target;
     const updatedMethods = [...newPreferMethodList];
@@ -354,6 +366,9 @@ const EditMenteeProfile = () => {
                   <div className="flex justify-start px-5 py-1 ml-4">
                     <p className="content-center text-xl">전공</p>
                   </div>
+                  <div className="flex justify-start px-5 py-1 ml-5">
+                    <p className="content-center text-xl">성적</p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
@@ -383,6 +398,27 @@ const EditMenteeProfile = () => {
                               />
                             )}
                           </div>
+                          {isEditing ? (
+                            <select
+                              value={course.gradeStatus || ""}
+                              onChange={(e) => handleInputGrade(e, course.id)}
+                              disabled
+                              className="bg-lightGray02 rounded-[15px] flex justify-center items-center pl-5 py-2 ml-10 text-lg w-[80px]"
+                            >
+                              <option value="DEFAULT" disabled>
+                                성적
+                              </option>
+                              <option value="APLUS">A+</option>
+                              <option value="A">A0</option>
+                              <option value="BPLUS">B+</option>
+                              <option value="B">B0</option>
+                              <option value="C">C</option>
+                            </select>
+                          ) : (
+                            <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px]">
+                              {course.gradeStatus}
+                            </div>
+                          )}
                           {/* 마이너스 버튼 */}
                           {isEditing && (
                             <div className="flex justify-end">
@@ -420,12 +456,6 @@ const EditMenteeProfile = () => {
                         <div
                           className="bg-lightGray02 rounded-[15px] justify-start px-5 py-2 w-[60px] ml-3 cursor-pointer"
                           onClick={() => handleMajorToggle(index)}
-                          // onClick={() =>
-                          //   setNewCourse((prev) => ({
-                          //     ...prev,
-                          //     isMajor: prev.isMajor === "MAJOR" ? "" : "MAJOR",
-                          //   }))
-                          // }
                         >
                           {course.isMajor === "MAJOR" ? (
                             <img
@@ -441,6 +471,24 @@ const EditMenteeProfile = () => {
                             />
                           )}
                         </div>
+                        <select
+                          value={course.gradeStatus || ""}
+                          onChange={(e) => handleInputGrade(e, index)}
+                          className="bg-lightGray02 rounded-[15px] justify-start pl-3 py-2 ml-10 text-lg w-[80px]"
+                        >
+                          <option value="DEFAULT" disabled>
+                            성적
+                          </option>
+                          <option value="APLUS">A+</option>
+                          <option value="A">A0</option>
+                          <option value="BPLUS">B+</option>
+                          <option value="B">B0</option>
+                          {/* <option value="CPLUS">C+</option> */}
+                          <option value="C">C</option>
+                          {/* <option value="DPLUS">D+</option>
+                        <option value="D">D0</option> */}
+                          {/* <option value="F">F</option> */}
+                        </select>
                         <div className="flex justify-end">
                           <button
                             onClick={() => handleDeleteCourse(course.id)}

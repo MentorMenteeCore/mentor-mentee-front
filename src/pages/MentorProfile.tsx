@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useParams } from "react-router-dom";
 
 const MentorProfile = () => {
+  const { nickname } = useParams();
   const [mentorData, setMentorData] = useState({
     courseDetails: [],
     availabilities: [],
@@ -21,12 +23,21 @@ const MentorProfile = () => {
         return;
       }
       try {
-        const response = await api.get(`/mentordetails/update?page=0`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        if (response) {
+        let response;
+        if (nickname) {
+          response = await api.get(`/search/user?nickname=${nickname}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        } else {
+          response = await api.get(`/mentordetails/update?page=0`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        }
+        if (response && response.data) {
           const data = response.data;
           console.log(response);
           setMentorData(data);

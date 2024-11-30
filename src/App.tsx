@@ -19,6 +19,7 @@ import Header from "./components/Header";
 import { AuthProvider } from "./components/AuthProvider";
 import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MentorList from "./pages/MentorList";
 
 function App() {
   return (
@@ -37,10 +38,18 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/mentorList"
+                element={
+                  <ProtectedRoute>
+                    <MentorList />
+                  </ProtectedRoute>
+                }
+              ></Route>
               <Route path="/profile">
-                <Route path="mentor" element={<MentorProfile />} />
+                <Route path="mentor/:nickname" element={<MentorProfile />} />
                 <Route path="mentor/edit" element={<EditMentorProfile />} />
-                <Route path="mentee" element={<MenteeProfile />} />
+                <Route path="mentee/:nickname" element={<MenteeProfile />} />
                 <Route path="mentee/edit" element={<EditMenteeProfile />} />
               </Route>
               <Route element={<SettingNavigation />}>

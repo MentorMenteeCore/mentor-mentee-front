@@ -18,7 +18,7 @@ export default function Header() {
     yearInUni: "",
     userImageUrl: "",
   });
-  const [isNicknameSearchPage, setIsNicknameSearchPage] = useState(false);
+  // const [isNicknameSearchPage, setIsNicknameSearchPage] = useState(false);
   const [selectedSearchType, setSelectedSearchType] =
     useState("departmentName");
 
@@ -26,7 +26,27 @@ export default function Header() {
     localStorage.getItem("token") || sessionStorage.getItem("token");
 
   const navigate = useNavigate();
-  const locaton = useLocation();
+
+  const fetchSearchResults = async (apiUrl, params) => {
+    try {
+      const response = await axios.get(apiUrl, {
+        params: params,
+        headers: {
+          Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+        },
+      });
+      // setSearchDepartment("");
+      // setSearchNickname("");
+      console.log("API 요청 URL:", apiUrl);
+      console.log("요청 파라미터:", params);
+      console.log("응답 데이터", response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error("API 호출 에러: ", error);
+      return null;
+    }
+  };
 
   const handleSearch = async () => {
     // 검색어 없을 경우
@@ -38,36 +58,33 @@ export default function Header() {
 
     setSearchResults([]); // 이전 결과 삭제
 
-    try {
-      console.log("Search button clicked");
-      let apiUrl = `${import.meta.env.VITE_API_KEY}/search`;
-      const params = {};
+    if (selectedSearchType === "departmentName" && searchDepartment.trim()) {
+      //학과 검색
+      const apiUrl = `${import.meta.env.ViTE_API_KEY}/search`;
+      const params = { departmentName: searchDepartment };
 
-      if (selectedSearchType === "departmentName" && searchDepartment.trim()) {
-        //학과 검색
-        params.departmentName = searchDepartment;
-        navigate(`/?departmentName=${encodeURIComponent(searchDepartment)}`);
-      } else if (selectedSearchType === "nickname" && searchNickname.trim()) {
-        //닉네임 검색
-        apiUrl = `${import.meta.env.VITE_API_KEY}/search/user`;
-        params.nickname = searchNickname;
+      const data = await fetchSearchResults(apiUrl, params);
+      if (data) {
+        setSearchResults(data);
+        navigate(`?departmentName=${encodeURIComponent(searchDepartment)}`);
       }
+    } else if (selectedSearchType === "nickname" && searchNickname.trim()) {
+      const apiUrl = `${import.meta.env.VITE_API_KEY}/search/user`;
+      const params = { nickname: searchNickname };
 
-      const response = await axios.get(apiUrl, {
-        params: params,
-        headers: {
-          Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-        },
-      });
-
-      console.log("API 요청 URL:", apiUrl);
-      console.log("요청 파라미터:", params);
-      console.log(response.data);
-
-      setSearchResults(response.data);
-    } catch (error) {
-      console.log("API 호출 에러:", error);
-      setSearchResults([]);
+      const user = await fetchSearchResults(apiUrl, params);
+      if (user) {
+        console.log("유저의 정보", user);
+        if (user.mentorId) {
+          navigate(`/profile/mentor/${encodeURIComponent(user.nickName)}`);
+        } else if (user.menteeId) {
+          navigate(`/profile/mentee/${encodeURIComponent(user.nickName)}`);
+        } else {
+          alert("유저의 역할 정보를 찾을 수 없습니다.");
+        }
+      } else {
+        alert("해당 닉네임에 대한 유저를 찾을 수 없습니다.");
+      }
     }
   };
 
@@ -109,7 +126,7 @@ export default function Header() {
   const resetSearch = () => {
     setSearchDepartment("");
     setSearchResults([]);
-    navigate("/");
+    window.location.replace("/");
   };
 
   useEffect(() => {
@@ -184,7 +201,10 @@ export default function Header() {
                         ? "bg-gray-300"
                         : ""
                     }`}
-                    onClick={() => setSelectedSearchType("departmentName")}
+                    onClick={() => {
+                      setSelectedSearchType("departmentName"),
+                        setSearchNickname("");
+                    }}
                   >
                     학과명
                   </button>
@@ -193,7 +213,10 @@ export default function Header() {
                     className="outline-none w-full ml-2"
                     placeholder="학과를 입력해주세요."
                     value={searchDepartment}
-                    onClick={() => setSelectedSearchType("departmentName")}
+                    onClick={() => {
+                      setSelectedSearchType("departmentName"),
+                        setSearchNickname("");
+                    }}
                     onChange={(e) => setSearchDepartment(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -209,7 +232,10 @@ export default function Header() {
                     className={`px-3 py-1 rounded-full flex items-center justify-center text-sm w-24 ${
                       selectedSearchType === "nickname" ? "bg-gray-300" : ""
                     }`}
-                    onClick={() => setSelectedSearchType("nickname")}
+                    onClick={() => {
+                      setSelectedSearchType("nickname"),
+                        setSearchDepartment("");
+                    }}
                   >
                     닉네임
                   </button>
@@ -218,7 +244,10 @@ export default function Header() {
                     className="outline-none w-full ml-2"
                     placeholder="닉네임을 입력해주세요."
                     value={searchNickname}
-                    onClick={() => setSelectedSearchType("nickname")}
+                    onClick={() => {
+                      setSelectedSearchType("nickname"),
+                        setSearchDepartment("");
+                    }}
                     onChange={(e) => setSearchNickname(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {

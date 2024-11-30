@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Search } from "../assets/icons";
 
 const EditMentorProfile = () => {
   const [mentorData, setMentorData] = useState({
@@ -203,7 +204,7 @@ const EditMentorProfile = () => {
           return "";
         }
         const date = new Date(`1970-01-01T${time}Z`);
-        return date.toISOString();
+        return date.toISOString().substring(11, 19);
       };
       return {
         ...availability,
@@ -699,6 +700,9 @@ const EditMentorProfile = () => {
               <div className="pl-2">
                 <div className="flex items-center mb-2">
                   <div className="flex justify-start px-5 py-1 w-1/2 ml-2">
+                    <p className="content-center text-xl">학과명</p>
+                  </div>
+                  <div className="flex justify-start px-5 py-1 w-1/2 ml-2">
                     <p className="content-center text-xl">과목명</p>
                   </div>
                   <div className="flex justify-start px-5 py-1 ml-7">
@@ -711,6 +715,22 @@ const EditMentorProfile = () => {
                 {mentorData.courseDetails && mentorData.courseDetails.length > 0
                   ? mentorData.courseDetails.map((course) => (
                       <div key={course.id} className="flex items-center mb-2">
+                        {/* 학과명 */}
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            name="departmentName"
+                            disabled
+                            value={course.departmentName}
+                            onChange={(e) => handleInputCourse(e, course.id)}
+                            placeholder="학과명"
+                            className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg text-lightGray04"
+                          />
+                        ) : (
+                          <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg">
+                            {course.departmentName}
+                          </div>
+                        )}
                         {/* 과목명 */}
                         {isEditing ? (
                           <input
@@ -720,7 +740,7 @@ const EditMentorProfile = () => {
                             value={course.courseName}
                             onChange={(e) => handleInputCourse(e, course.id)}
                             placeholder="새 과목명"
-                            className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg text-lightGray04"
+                            className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-4 text-lg text-lightGray04"
                           />
                         ) : (
                           <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg">
@@ -791,12 +811,21 @@ const EditMentorProfile = () => {
                   showNewAvailableCourse &&
                   newCourseList.map((course, index) => (
                     <div className="flex justify-start items-center mb-2">
-                      <input
+                      {/* <input
                         type="text"
-                        name="courseName"
+                        name="departmentName"
+                        value={course.departmentName}
+                        onChange={(e) => handleInputDepartment(e, index)}
+                        placeholder="학과명"
+                        className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg"
+                      >
+                        <button onClick={handleSearch} className="ml-2">
+                          <Search />
+                        </button>
+                      </input> */}
+                      <select
                         value={course.courseName}
                         onChange={(e) => handleInputCourse(e, index)}
-                        placeholder="새 과목명"
                         className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg"
                       />
                       <select

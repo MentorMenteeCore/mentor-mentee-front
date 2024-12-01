@@ -6,7 +6,7 @@ export default function DepartmentHome() {
   const { departmentId } = useParams();
   const GRADES = ["1학년", "2학년", "3학년", "4학년"];
   const GRADE_MAP = {
-    "1학년": "FRESHMEN",
+    "1학년": "FRESHMAN",
     "2학년": "SOPHOMORE",
     "3학년": "JUNIOR",
     "4학년": "SENIOR",
@@ -16,7 +16,7 @@ export default function DepartmentHome() {
     courseName: "",
     mentors: [],
     userYearInUni: "",
-    totalPages: 1,
+    totalPages: 0,
     lastPageOrNot: true,
     currentPageNum: 0,
     departmentName: "",
@@ -26,6 +26,7 @@ export default function DepartmentHome() {
   const [selectedPage, setSelectedPage] = useState(0);
   const [isDropdownOpen, setIsDropDownOpen] = useState("");
   const [selectedSort, setSelectedSort] = useState("nickname");
+  const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function DepartmentHome() {
 
           // 기본 과목 데이터와 멘토 리스트 함께 설정
           const mentorsResponse = await api.get(
-            `/mentorlist/${departmentId}?courseId=${firstCourse.courseId}`
+            `/mentorlist/${departmentId}?courseId=${firstCourse.courseId}&size=4`
           );
 
           setCourse({
@@ -75,11 +76,12 @@ export default function DepartmentHome() {
     const fetchMentorsForSelectedCourse = async () => {
       try {
         const response = await api.get(
-          `/mentorlist/${departmentId}?courseId=${selectedCourse}`
+          `/mentorlist/${departmentId}?courseId=${selectedCourse}&size=4`
         );
         setCourse((prev) => ({
           ...prev,
           mentors: response.data.mentors || [],
+          totalPages: response.data.totalPages || "",
         }));
       } catch (error) {
         console.log("Error fetching mentors for selected course:", error);
@@ -100,12 +102,13 @@ export default function DepartmentHome() {
   const fetchCoursesByGrade = async (gradeString: string) => {
     try {
       const response = await api.get(
-        `/mentorlist/${departmentId}?selectedYear=${gradeString}`
+        `/mentorlist/${departmentId}?selectedYear=${gradeString}&size=4`
       );
       console.log("학년 선택에 따른 과목: ", response.data);
       setCourse({
         ...course,
         courseDtoList: response.data.courseDtoList || [],
+        mentors: response.data.mentors || [],
       });
 
       if (response.data.courseDtoList.length > 0) {
@@ -175,28 +178,29 @@ export default function DepartmentHome() {
   }, [selectedCourse]);
 
   const handlePageChange = async (pageNum: number) => {
-    if (pageNum < 1 || pageNum > course.totalPages) return;
+    if (pageNum < 0 || pageNum >= course.totalPages) return;
 
-    const pageToSen = pageNum === 1 ? 0 : pageNum - 1;
+    const pageToSen = pageNum;
 
     setSelectedPage(pageNum);
 
     try {
       const response = await api.get(
-        `/mentorlist/${departmentId}?courseId=${selectedCourse}&page=${pageToSen}`
+        `/mentorlist/${departmentId}?courseId=${selectedCourse}&page=${pageToSen}&size=4`
       );
 
       setCourse((prev) => ({
         ...prev,
         mentors: response.data.mentors || [],
         currentPageNum: pageNum,
+        lastPageOrNot: response.data.lastPageOrNot,
       }));
     } catch (error) {
       console.log("Error fetching data for page change: ", error);
     }
   };
 
-  const handleMentorClick = async (nickname) => {
+  const handleMentorClick = async (nickname: string) => {
     const encodedNickname = encodeURIComponent(nickname);
     console.log(nickname);
     console.log(encodedNickname);
@@ -249,19 +253,24 @@ export default function DepartmentHome() {
             </ul>
           </div>
         </div>
-        <div className=" col-span-4 px-10 gap-2">
-          <div className="flex justify-end items-center pt-5 pr-2 pl-5">
-            <div className="bg-lightGray01 text-black text-opacity-100 font-bold py-2 px-3 rounded-xl mr-5">
-              <Link to={"/mentorList"}>모든 멘토 보기</Link>
+        <div className=" col-span-4 px-10 gap-2 mt-2">
+          <div className="flex justify-between items-center pt-3 pr-2 pl-5 mb-10">
+            <div className=" font-bold md:text-2xl sm:text-xl pl-5">
+              {course.courseName}
             </div>
-            <img
-              src="/sort.png"
-              className="w-[30px] h-[30px] cursor-pointer"
-              onClick={toggleDropdown}
-            />
+            <div className="flex items-center justify-end gap-2">
+              <div className="bg-lightGray01 text-black text-opacity-100 font-bold py-2 px-3 rounded-xl mr-5">
+                <Link to={"/mentorList"}>모든 멘토 보기</Link>
+              </div>
+              <img
+                src="/sort.png"
+                className="w-[30px] h-[30px] cursor-pointer"
+                onClick={toggleDropdown}
+              />
+            </div>
 
             {isDropdownOpen && (
-              <div className="absolute right-13 top-40 mt-2 bg-white border-2 border-black/50 rounded-xl shadow-md py-2 dropdown-menu">
+              <div className="absolute right-16 top-40 mt-2 bg-white border-2 border-black/50 rounded-xl shadow-md py-2 dropdown-menu">
                 <div
                   className={`pl-5 pr-12 py-2 ${
                     selectedSort === "nickname" ? "text-red01 " : ""
@@ -301,9 +310,7 @@ export default function DepartmentHome() {
               </div>
             )}
           </div>
-          <div className="mb-5 mt-2 font-bold text-2xl pl-5">
-            {course.courseName}
-          </div>
+
           {course.mentors.length > 0 ? (
             course.mentors.map((mentor, id) => (
               <div
@@ -332,16 +339,17 @@ export default function DepartmentHome() {
               </div>
             ))
           ) : (
-            <p className="pl-5"> 해당 과목을 등록한 멘토가 없습니다. </p>
+            <p className="pl-10"> 해당 과목을 등록한 멘토가 없습니다. </p>
           )}
-          <div className="flex justify-center items-center mt-6 space-x-2 py-4 bg-white  border-gray-300 fixed bottom-0 left-0 right-0 z-10">
+          <div className="flex justify-center items-center space-x-2 py-4 bg-white  border-gray-300 fixed bottom-0 left-40 right-0 z-10">
             {course.totalPages === 0 ? (
               <p> </p>
             ) : (
               <div className="flex items-center space-x-2">
                 <button
-                  className="w-10 h-10 flex justify-center items-center rounded-full hover:bg-gray-300 disabled:bg-gray-400 text-xl"
+                  className="w-10 h-10 flex justify-center items-center rounded-full hover:bg-gray-300 disabled:bg-white "
                   onClick={() => handlePageChange(course.currentPageNum - 1)}
+                  disabled={course.currentPageNum === 0}
                 >
                   &laquo;
                 </button>
@@ -352,9 +360,9 @@ export default function DepartmentHome() {
                     className={`w-10 h-10 flex justify-center items-center rounded-full ${
                       course.currentPageNum === index
                         ? "bg-blue-500 text-white"
-                        : "bg-gray-200 hover:bg-gray-300"
+                        : " hover:bg-gray-300"
                     }`}
-                    onClick={() => handlePageChange(index + 1)}
+                    onClick={() => handlePageChange(index)}
                   >
                     {index + 1}
                   </button>
@@ -362,7 +370,7 @@ export default function DepartmentHome() {
                 <button
                   className="w-10 h-10 flex justify-center items-center rounded-full hover:bg-gray-300 disabled:bg-white "
                   onClick={() => handlePageChange(course.currentPageNum + 1)}
-                  disabled={course.currentPageNum === course.totalPages - 1}
+                  disabled={course.lastPageOrNot === true}
                 >
                   &raquo;
                 </button>

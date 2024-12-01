@@ -103,7 +103,7 @@ export default function Home2() {
   return (
     <div className="grid px-5 pt-4">
       <div className="grid">
-        <div className="w-fit border-2 rounded-[10px] border-black grid py-1 px-2">
+        <div className="w-fit border-2 rounded-[10px] border-black grid py-1 px-2 sm:text-sm md:text-base">
           <select name="학과" onChange={handleSelect} value={selectedCollege}>
             {uni.map((uni) => (
               <option value={uni.college} key={uni.collegeName}>
@@ -113,7 +113,7 @@ export default function Home2() {
           </select>
         </div>
       </div>
-      <div className="grid grid-cols-6 pt-5 gap-9">
+      <div className="grid md:grid-cols-6 pt-5 gap-9 sm:grid-cols-4">
         {posts.length > 0 ? (
           posts.map((department) => (
             <div className="grid" key={department.departmentId}>
@@ -135,7 +135,9 @@ export default function Home2() {
             </div>
           ))
         ) : (
-          <div>해당 학과는 찾을 수 없습니다.</div>
+          <div className="col-span-6">
+            해당 단과대학의 학과를 불러올 수 없습니다.
+          </div>
         )}
       </div>
     </div>

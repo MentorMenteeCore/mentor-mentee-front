@@ -196,11 +196,11 @@ export default function Header() {
               <div className="flex w-full gap-2 py-4">
                 <div className="flex items-center flex-grow">
                   <button
-                    className={`px-3 py-1 rounded-full flex items-center justify-center text-sm w-24 ${
+                    className={`px-3 py-1 rounded-full flex items-center justify-center md:text-sm w-24 sm:text-xs ${
                       selectedSearchType === "departmentName"
                         ? "bg-gray-300"
                         : ""
-                    }`}
+                    } `}
                     onClick={() => {
                       setSelectedSearchType("departmentName"),
                         setSearchNickname("");
@@ -210,7 +210,7 @@ export default function Header() {
                   </button>
                   <input
                     type="text"
-                    className="outline-none w-full ml-2"
+                    className="outline-none w-full ml-2 md:text-sm sm:text-xs"
                     placeholder="학과를 입력해주세요."
                     value={searchDepartment}
                     onClick={() => {
@@ -229,7 +229,7 @@ export default function Header() {
 
                 <div className="flex items-center flex-grow">
                   <button
-                    className={`px-3 py-1 rounded-full flex items-center justify-center text-sm w-24 ${
+                    className={`px-3 py-1 rounded-full flex items-center justify-center md:text-sm w-24 sm:text-xs ${
                       selectedSearchType === "nickname" ? "bg-gray-300" : ""
                     }`}
                     onClick={() => {
@@ -241,7 +241,7 @@ export default function Header() {
                   </button>
                   <input
                     type="text"
-                    className="outline-none w-full ml-2"
+                    className="outline-none w-full ml-2 md:text-sm sm:text-xs"
                     placeholder="닉네임을 입력해주세요."
                     value={searchNickname}
                     onClick={() => {
@@ -266,7 +266,7 @@ export default function Header() {
           </div>
 
           <div className="grid justify-self-end items-center col-span-1">
-            <ul className="grid grid-cols-5 justify-items-center items-center gap-2">
+            <ul className="grid grid-cols-4 justify-items-center items-center md:gap-3 sm:gap-1 md:text-sm sm:text-xs">
               <li>
                 <Link to={"/"}>메세지</Link>
               </li>
@@ -276,12 +276,12 @@ export default function Header() {
               <li>
                 <img
                   onClick={toggleDropdown}
-                  className="bg-lightGray01 rounded-[10px] w-[60px] h-[60px] rounded-full cursor-pointer"
+                  className="bg-lightGray01 md:w-[60px] md:h-[60px] sm:w-[40px] sm:h-[40px] rounded-full cursor-pointer shadow-md object-cover"
                   src={userInfo.userImageUrl}
                 />
 
                 {isDropdownOpen && (
-                  <div className="absolute right-10 mt-2 bg-white border-2 border-black/50 rounded-xl shadow-md py-2 dropdown-menu">
+                  <div className="absolute right-20 mt-2 bg-white border-2 border-black/50 rounded-xl shadow-md py-2 dropdown-menu text-sm">
                     <div className="pl-5 pr-12 py-2 hover:bg-lightGray01/50 cursor-pointer">
                       <button
                         onClick={() => {
@@ -304,14 +304,18 @@ export default function Header() {
                   </div>
                 )}
               </li>
-              <li>
+              {/* <li>
                 <Link to={"/"}>
                   <img src="/money.png" alt="씨앗" className="mt-2 ml-2" />
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link to={"/setting/information"}>
-                  <img src="/setting.png" alt="설정" />
+                  <img
+                    src="/setting.png"
+                    alt="설정"
+                    className="ml-3 sm:w-[40px] sm:h-[40px]"
+                  />
                 </Link>
               </li>
             </ul>

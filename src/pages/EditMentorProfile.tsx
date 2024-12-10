@@ -576,10 +576,38 @@ const EditMentorProfile = () => {
             <section className="mb-16">
               <h2 className="text-[22px] font-bold">연락 가능 시간</h2>
               <div className="w-full h-1 bg-black mt-3 mb-5"></div>
-              <div className="pl-2">
+              <div className="pl-4">
                 {mentorData.availabilities &&
-                mentorData.availabilities.length > 0
-                  ? mentorData.availabilities.map((day) => {
+                mentorData.availabilities.length > 0 ? (
+                  !isEditing ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4">
+                      {mentorData.availabilities.map((day) => {
+                        if (
+                          !day.dayOfWeek ||
+                          !day.availableStartTime ||
+                          !day.availableEndTime
+                        ) {
+                          return null; // 이 경우 항목을 렌더링하지 않음
+                        }
+
+                        return (
+                          <div
+                            className="bg-lightGray02 rounded-[15px] px-3 py-2 flex gap-3 w-fit"
+                            key={day.id}
+                          >
+                            <div className="text-lg font-semibold">
+                              {dayOfWeekMap[day.dayOfWeek]}
+                            </div>
+                            <div className="text-lg">
+                              {day.availableStartTime.substring(0, 5)} ~{" "}
+                              {day.availableEndTime.substring(0, 5)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    mentorData.availabilities.map((day) => {
                       if (
                         !day.dayOfWeek ||
                         !day.availableStartTime ||
@@ -594,100 +622,78 @@ const EditMentorProfile = () => {
                           key={day.id}
                         >
                           {/* 요일 선택 */}
-                          {isEditing ? (
-                            <select
-                              value={day.dayOfWeek || ""}
-                              disabled
-                              className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-10 text-lg"
-                            >
-                              <option value="DEFAULT" disabled>
-                                요일 선택
-                              </option>
-                              {Object.entries(dayOfWeekMap).map(
-                                ([key, value]) => (
-                                  <option key={key} value={key}>
-                                    {value}
-                                  </option>
-                                )
-                              )}
-                            </select>
-                          ) : (
-                            <div className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-10 text-lg">
-                              {dayOfWeekMap[day.dayOfWeek]}
-                            </div>
-                          )}
+                          <select
+                            value={day.dayOfWeek || ""}
+                            disabled
+                            className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-10 text-lg"
+                          >
+                            <option value="DEFAULT" disabled>
+                              요일 선택
+                            </option>
+                            {Object.entries(dayOfWeekMap).map(
+                              ([key, value]) => (
+                                <option key={key} value={key}>
+                                  {value}
+                                </option>
+                              )
+                            )}
+                          </select>
+
                           {/* 시작 시간 선택 */}
-                          {isEditing ? (
-                            <select
-                              value={
-                                day.availableStartTime.substring(0, 5) || ""
-                              }
-                              disabled
-                              className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-4 text-lg"
-                            >
-                              <option value="DEFAULT" disabled>
-                                시작 시간
+                          <select
+                            value={day.availableStartTime.substring(0, 5) || ""}
+                            disabled
+                            className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-4 text-lg"
+                          >
+                            <option value="DEFAULT" disabled>
+                              시작 시간
+                            </option>
+                            {timeOptions.map((time) => (
+                              <option key={time} value={time}>
+                                {time}
                               </option>
-                              {timeOptions.map((time) => (
-                                <option key={time} value={time}>
-                                  {time}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <div className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-4 text-lg">
-                              {day.availableStartTime.substring(0, 5)}
-                            </div>
-                          )}
+                            ))}
+                          </select>
+
                           <p className="text-xl mr-4">~</p>
+
                           {/* 종료 시간 선택 */}
-                          {isEditing ? (
-                            <select
-                              value={day.availableEndTime.substring(0, 5) || ""}
-                              onChange={(e) =>
-                                handleTimeChange(e, day.id, "end")
-                              }
-                              disabled
-                              className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 text-lg"
-                            >
-                              <option value="DEFAULT" disabled>
-                                종료 시간
+                          <select
+                            value={day.availableEndTime.substring(0, 5) || ""}
+                            disabled
+                            className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 text-lg"
+                          >
+                            <option value="DEFAULT" disabled>
+                              종료 시간
+                            </option>
+                            {timeOptions.map((time) => (
+                              <option key={time} value={time}>
+                                {time}
                               </option>
-                              {timeOptions.map((time) => (
-                                <option key={time} value={time}>
-                                  {time}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <div className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 text-lg">
-                              {day.availableEndTime.substring(0, 5)}
-                            </div>
-                          )}
+                            ))}
+                          </select>
 
                           {/* 마이너스 버튼 */}
-                          {isEditing && (
-                            <div className="flex justify-end">
-                              <button
-                                onClick={() =>
-                                  handleDeleteAvailableTime(day.id)
-                                }
-                                className="bg-lightGray01 rounded-full px-2 py-1 ml-10 w-8 h-8 flex items-center justify-center"
-                              >
-                                <p className="text-white text-xl font-bold">
-                                  -
-                                </p>
-                              </button>
-                            </div>
-                          )}
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => handleDeleteAvailableTime(day.id)}
+                              className="bg-lightGray01 rounded-full px-2 py-1 ml-10 w-8 h-8 flex items-center justify-center"
+                            >
+                              <p className="text-white text-xl font-bold">-</p>
+                            </button>
+                          </div>
                         </div>
                       );
                     })
-                  : !isEditing && (
-                      <p className="text-gray-500 text-base pl-5">
-                        현재 등록된 시간이 없습니다.
-                      </p>
-                    )}
+                  )
+                ) : (
+                  !isEditing && (
+                    <p className="text-gray-500 text-base pl-5">
+                      현재 등록된 시간이 없습니다.
+                    </p>
+                  )
+                )}
+
                 {isEditing &&
                   showNewAvailableTime &&
                   newAvailableList.map((day, index) => (

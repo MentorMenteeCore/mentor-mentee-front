@@ -320,7 +320,7 @@ export default function Header() {
                   <img
                     src="/setting.png"
                     alt="설정"
-                    className="ml-3 sm:w-[40px] sm:h-[40px]"
+                    className="ml-3 sm:w-[30px] sm:h-[30px] md:w-[40px] md:h-[40px]"
                   />
                 </Link>
               </li>

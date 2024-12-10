@@ -21,6 +21,8 @@ import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MentorList from "./pages/MentorList";
 import { saveDepartments } from "./components/SaveDepartments";
+import chatting from "./pages/Chatting";
+import Chatting from "./pages/Chatting";
 
 function App() {
   saveDepartments();
@@ -67,6 +69,7 @@ function App() {
                   element={<DeleteAccount />}
                 ></Route>
               </Route>
+              <Route path="/chat" element={<Chatting />}></Route>
             </Route>
             <Route path="/join/agree" element={<SignupAgree />} />
             <Route path="/join/info" element={<Signup />} />

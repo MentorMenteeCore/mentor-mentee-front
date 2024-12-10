@@ -11,6 +11,26 @@ const MenteeProfile = () => {
     menteePreferredTeachingMethodDtoList: [],
   });
 
+  const convertGradeSwitch = (gradeStatus: string) => {
+    // gradeStatus가 null인 경우 기본값 설정
+    if (!gradeStatus) {
+      return ""; // 또는 "DEFAULT"로 설정
+    }
+
+    switch (gradeStatus) {
+      case "APLUS":
+        return "A+";
+      case "A":
+        return "A0";
+      case "BPLUS":
+        return "B+";
+      case "B":
+        return "B0";
+      default:
+        return gradeStatus;
+    }
+  };
+
   useEffect(() => {
     const fetchMenteeData = async () => {
       const accessToken =
@@ -89,12 +109,15 @@ const MenteeProfile = () => {
               <h2 className="text-[22px] font-bold">이수교과목 내역</h2>
               <div className="w-full h-1 bg-black mt-3 mb-3"></div>
               <div className="pl-2">
-                <div className="flex items-center mb-2">
-                  <div className="flex justify-start px-5 py-1 mr-[21px] w-1/2 ">
-                    <p className=" content-center text-xl">과목명</p>
+                <div className="grid grid-cols-7 items-center mb-2">
+                  <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
+                    <p className="content-center text-xl">학과명</p>
                   </div>
-                  <div className="flex justify-start px-5 py-1 ml-4">
-                    <p className="content-center text-xl">전공</p>
+                  <div className="flex justify-start px-5 py-1 ml-7 col-span-3">
+                    <p className="content-center text-xl">과목명</p>
+                  </div>
+                  <div className="flex justify-start px-5 py-1 ml-10 col-span-2">
+                    <p className="content-center text-xl">성적</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3">
@@ -102,27 +125,16 @@ const MenteeProfile = () => {
                   menteeData.userCourseList.length > 0 ? (
                     menteeData.userCourseList.map((course) => (
                       <div key={course.id} className="flex items-center mb-2">
-                        {/* 과목명 */}
-                        <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 mr-10 w-1/2">
-                          <p className="content-center text-xl">
+                        <div className="grid grid-cols-6">
+                          <div className="bg-lightGray02 rounded-[15px] justify-start px-5 py-2 w-full ml-2 text-lg col-span-2">
+                            {course.departmentName}
+                          </div>
+                          <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-6 text-lg col-span-3">
                             {course.courseName}
-                          </p>
-                        </div>
-                        {/* 체크 표시 */}
-                        <div className="bg-lightGray02 rounded-[15px] justify-start px-5 py-2 w-[60px] ml-3">
-                          {course.isMajor === "MAJOR" ? (
-                            <img
-                              className="content-center"
-                              src="/check.png"
-                              alt="check"
-                            />
-                          ) : (
-                            <img
-                              className="content-center invisible"
-                              src="/check.png"
-                              alt="check"
-                            />
-                          )}
+                          </div>
+                          <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px] col-span-1">
+                            {convertGradeSwitch(course.grade)}
+                          </div>
                         </div>
                       </div>
                     ))

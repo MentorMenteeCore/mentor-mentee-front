@@ -76,9 +76,15 @@ export default function Header() {
       if (user) {
         console.log("유저의 정보", user);
         if (user.mentorId) {
-          navigate(`/profile/mentor/${encodeURIComponent(user.nickName)}`);
-        } else if (user.menteeId) {
-          navigate(`/profile/mentee/${encodeURIComponent(user.nickName)}`);
+          navigate(
+            `/profile/mentor/${encodeURIComponent(user.nickName)}&size=100`
+          );
+        } else if (user.menteeNickName) {
+          navigate(
+            `/profile/mentee/${encodeURIComponent(
+              user.menteeNickName
+            )}&size=100`
+          );
         } else {
           alert("유저의 역할 정보를 찾을 수 없습니다.");
         }

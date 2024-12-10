@@ -20,8 +20,11 @@ import { AuthProvider } from "./components/AuthProvider";
 import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MentorList from "./pages/MentorList";
+import { saveDepartments } from "./components/SaveDepartments";
 
 function App() {
+  saveDepartments();
+
   return (
     <>
       <BrowserRouter>
@@ -30,6 +33,7 @@ function App() {
           <Routes>
             <Route element={<Header />}>
               <Route path="/" element={<Home2 />} />
+
               <Route
                 path="/departmentHome/:departmentId"
                 element={

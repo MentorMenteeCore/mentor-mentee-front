@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import {
-  createRoutesFromElements,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Dropdown from "../components/Dropdown";
+import { loadDepartments } from "../components/SaveDepartments";
 
 const EditMenteeProfile = () => {
   const [menteeData, setMenteeData] = useState({
@@ -16,18 +14,37 @@ const EditMenteeProfile = () => {
     gradeStatus: "",
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [newCourseList, setNewCourseList] = useState([
-    { courseName: "", isMajor: "" },
-  ]);
-  const [newPreferMethodList, setNewPreferMethodList] = useState([
-    { menteePreferredTeachingMethod: "" },
-  ]);
+  const [newCourseList, setNewCourseList] = useState([]);
+  const [newPreferMethodList, setNewPreferMethodList] = useState([]);
   const [deletedCourseList, setDeletedCourseList] = useState([]);
   const [showNewCourseList, setShowNewCourseList] = useState(false);
   const [showNewMethodList, setShowNewMethodList] = useState(false);
+  const [departmentNames, setDepartmentNames] = useState([]);
+  const [departmentCourse, setDepartmentCourse] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedGrade, setSelectedGrade] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const fetchData = async (courseName: string) => {
+    try {
+      const response = await api.get(`/courses?departmentName=${courseName}`);
+      console.log(response.data);
+      setDepartmentCourse(response.data.course);
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  };
+
+  // selectedOption이 변경될 때마다 API 요청
+  useEffect(() => {
+    if (selectedDepartment) {
+      fetchData(selectedDepartment);
+    }
+  }, [selectedDepartment]);
 
   // Mentee Data 불러오기 (페이지 들어올 때마다 실행[location])
   const fetchMenteeProfile = async () => {
@@ -45,6 +62,11 @@ const EditMenteeProfile = () => {
     fetchMenteeProfile();
   }, [location]);
 
+  useEffect(() => {
+    const departments = loadDepartments();
+    setDepartmentNames(departments);
+  }, []);
+
   if (!menteeData) {
     return <div>Failed to load profile</div>;
   }
@@ -54,40 +76,83 @@ const EditMenteeProfile = () => {
     setIsEditing(true);
   };
 
+  const convertGradeSwitch = (gradeStatus: string) => {
+    // gradeStatus가 null인 경우 기본값 설정
+    if (!gradeStatus) {
+      return ""; // 또는 "DEFAULT"로 설정
+    }
+
+    switch (gradeStatus) {
+      case "APLUS":
+        return "A+";
+      case "A":
+        return "A0";
+      case "BPLUS":
+        return "B+";
+      case "B":
+        return "B0";
+      default:
+        return gradeStatus;
+    }
+  };
+
   // 저장 버튼 관련
   const handleSave = async () => {
     // 모든 새 과목명 입력되었는지 확인
     const isValid = newCourseList.every(
-      (course) => course.courseName.trim() !== ""
+      (course) =>
+        course.courseName?.trim() !== "" &&
+        course.department?.trim() !== "" &&
+        course.grade?.trim() !== ""
+    );
+
+    const isValidMethods = newPreferMethodList.every(
+      (method) =>
+        method.menteePreferredTeachingMethod?.trim() !== "" ||
+        method.menteePreferredTeaching?.trim() !== ""
     );
 
     const filteredCourseList = newCourseList.filter(
       (course) =>
-        course.courseName.trim() !== "" && course.isMajor.trim() !== ""
+        course.courseName?.trim() !== "" &&
+        course.grade?.trim() !== "" &&
+        course.department?.trim() !== ""
     );
 
     const filteredMethodList = newPreferMethodList.filter(
-      (method) => method.menteePreferredTeachingMethod.trim !== ""
+      (method) => method.menteePreferredTeaching?.trim() !== ""
     );
 
     console.log("필터링된 과목 리스트", filteredCourseList);
     console.log("필터링된 수업 방식 리스트", filteredMethodList);
 
-    const convertMajorStatus = (isMajor) => {
-      if (!isMajor) {
-        return "NOTMAJOR";
-      } else {
-        return isMajor;
+    if (!isValid) {
+      alert("이수 교과목 내역을 모두 입력해주세요. ");
+      return; //저장 막기
+    } else if (!isValidMethods) {
+      alert("선호 방식을 모두 입력해주세요!");
+      return;
+    }
+
+    const convertGradeStatus = (gradeStatus: string) => {
+      // gradeStatus가 null인 경우 기본값 설정
+      if (!gradeStatus) {
+        return ""; // 또는 "DEFAULT"로 설정
+      }
+
+      switch (gradeStatus) {
+        case "A+":
+          return "APLUS";
+        case "A0":
+          return "A";
+        case "B+":
+          return "BPLUS";
+        case "B0":
+          return "B";
+        default:
+          return gradeStatus;
       }
     };
-
-    // if (!isValid) {
-    //   alert("새 과목명을 입력해주세요!");
-    //   return; //저장 막기
-    // } else if (!isValidMethods) {
-    //   alert("선호 방식을 입력해주세요!");
-    //   return;
-    // }
 
     // 삭제된 과목을 제외한 새로운 과목 리스트
     const updatedCourseList = [
@@ -98,24 +163,43 @@ const EditMenteeProfile = () => {
         )
         .map((course) => ({
           ...course,
-          isMajor: convertMajorStatus(course.isMajor),
+          course: course.courseName,
+          grade: course.grade,
         })),
-      ...filteredCourseList.filter(
-        (course) =>
-          !menteeData.userCourseList.some(
-            (existing) => existing.id === course.id
-          )
-      ),
+      ...filteredCourseList
+        .filter(
+          (course) =>
+            !menteeData.userCourseList.some(
+              (existing) => existing.id === course.id
+            )
+        )
+        .map((course) => ({
+          ...course,
+          grade: convertGradeStatus(course.grade),
+        })),
     ];
 
-    // 삭제된 과목 제외 새로운 선호 방식 리스트
+    console.log("업데이트된 courseList: ", updatedCourseList);
+
+    // 삭제된 method 제외 새로운 선호 방식 리스트
     const updatedMethodList = [
-      ...menteeData.menteePreferredTeachingMethodDtoList.filter(
-        (method) =>
-          !newPreferMethodList.some((deleted) => deleted.id === method.id)
-      ),
+      ...menteeData.menteePreferredTeachingMethodDtoList
+        .filter(
+          (method) =>
+            !newPreferMethodList.some((deleted) => deleted.id === method.id)
+        )
+        .map((method) => {
+          if (method.menteePreferredTeachingMethod) {
+            return {
+              ...method,
+              menteePreferredTeaching: method.menteePreferredTeachingMethod,
+              menteePreferredTeachingMethod: undefined,
+            };
+          }
+        }),
       ...filteredMethodList.filter(
         (method) =>
+          method.menteePreferredTeachingMethodDtoList !== null &&
           !menteeData.menteePreferredTeachingMethodDtoList.some(
             (existing) => existing.id === method.id
           )
@@ -170,21 +254,25 @@ const EditMenteeProfile = () => {
 
   // 과목 -> + 버튼 클릭 시
   const handleAddCourse = () => {
+    setNewCourseList((prevList) => [
+      ...prevList,
+      {
+        id: Date.now(),
+        department: "",
+        grade: "",
+        course: "",
+      },
+    ]);
     setShowNewCourseList(true);
-    // setNewCourseList([
-    //   ...newCourseList,
-    //   { courseName: "", isMajor: "NOTMAJOR", id: new Date().getTime() },
-    // ]);
-    // setIsAddingCourse(true);
   };
 
   // 선호방식 -> + 버튼 클릭 시
   const handleAddPreferMethod = () => {
+    setNewPreferMethodList((prevList) => [
+      ...prevList,
+      { id: Date.now(), menteePreferredTeachingMethod: "" },
+    ]);
     setShowNewMethodList(true);
-    // setNewPreferMethodList([
-    //   ...newPreferMethodList,
-    //   { menteePreferredTeachingMethod: "" },
-    // ]);
   };
 
   // 과목 -> - 버튼 클릭 시
@@ -229,41 +317,11 @@ const EditMenteeProfile = () => {
     });
   };
 
-  const handleInputChange = (e, index) => {
-    const { name, value } = e.target;
-    const updatedCourses = [...newCourseList];
-    updatedCourses[index][name] = value; // 입력 값 업데이트
-
-    if (name === "courseName" && value.trim() === "") {
-      updatedCourses[index].isMajor = "NOTMAJOR";
-    }
-
-    setNewCourseList(updatedCourses);
-  };
-
-  const handleInputGrade = (e, index) => {
-    setNewCourseList((prevList) => {
-      const updatedGrade = [...prevList];
-      updatedGrade[index] = {
-        ...updatedGrade[index],
-        gradeStatus: e.target.value,
-      };
-      return updatedGrade;
-    });
-  };
-
   const handleMethodInputChange = (e, index) => {
     const { value } = e.target;
     const updatedMethods = [...newPreferMethodList];
-    updatedMethods[index].menteePreferredTeachingMethod = value;
+    updatedMethods[index].menteePreferredTeaching = value;
     setNewPreferMethodList(updatedMethods);
-  };
-
-  const handleMajorToggle = (index) => {
-    const updatedCourses = [...newCourseList];
-    updatedCourses[index].isMajor =
-      updatedCourses[index].isMajor === "MAJOR" ? "NOTMAJOR" : "MAJOR"; // 전공 토글
-    setNewCourseList(updatedCourses);
   };
 
   //역할 전환
@@ -280,6 +338,57 @@ const EditMenteeProfile = () => {
       console.log("Failed to switch to mentor", error);
       alert("멘토 전환 중 오류가 발생했습니다.");
     }
+  };
+
+  const handleDepartmentSelect = (department: string, id: string) => {
+    console.log("department ID: ", id);
+
+    // id 기반으로 업데이트
+    setNewCourseList((prev) =>
+      prev.map((course) =>
+        course.id === id
+          ? { ...course, department, courseName: "" } // department 변경
+          : course
+      )
+    );
+    const newDepartmentCourses = fetchData(department);
+    setDepartmentCourse(newDepartmentCourses);
+
+    // setSelectedDepartment(department);
+    // setSelectedDepartmentId(id);
+    setSelectedCourse("");
+    setSelectedGrade("");
+
+    // setNewCourseList((prev) => [{ ...prev[0], department, courseName: "" }]);
+  };
+
+  const handleCourseSelect = (course: string, id: string) => {
+    console.log("course ID: ", id);
+    console.log("Course selected:", course);
+    // setSelectedCourse(course);
+
+    setNewCourseList((prev) =>
+      prev.map((courseItem) =>
+        courseItem.id === id
+          ? { ...courseItem, courseName: course } // courseName 업데이트
+          : courseItem
+      )
+    );
+    // setNewCourseList((prev) => [{ ...prev[0], courseName: course }]);
+  };
+
+  const handleGradeSelect = (grade: string, id: string) => {
+    console.log("grade ID: ", id);
+    // setSelectedGrade(grade);
+
+    setNewCourseList((prev) =>
+      prev.map((courseItem) =>
+        courseItem.id === id
+          ? { ...courseItem, grade } // grade 업데이트
+          : courseItem
+      )
+    );
+    // setNewCourseList((prev) => [{ ...prev[0], grade: grade }]);
   };
 
   return (
@@ -359,84 +468,89 @@ const EditMenteeProfile = () => {
               <h2 className="text-[22px] font-bold">이수교과목 내역</h2>
               <div className="w-full h-1 bg-black mt-3 mb-3"></div>
               <div className="pl-2">
-                <div className="flex items-center mb-2">
-                  <div className="flex justify-start px-5 py-1 mr-[21px] w-1/2 ">
-                    <p className="content-center text-xl">과목명</p>
+                {isEditing ? (
+                  <div className="grid grid-cols-7 items-center mb-2">
+                    <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
+                      <p className="content-center text-xl">학과명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-7 col-span-3">
+                      <p className="content-center text-xl">과목명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-11 col-span-2">
+                      <p className="content-center text-xl">성적</p>
+                    </div>
                   </div>
-                  <div className="flex justify-start px-5 py-1 ml-4">
-                    <p className="content-center text-xl">전공</p>
+                ) : (
+                  <div className="grid grid-cols-7 items-center mb-2">
+                    <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
+                      <p className="content-center text-xl">학과명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-5 col-span-3">
+                      <p className="content-center text-xl">과목명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-10 col-span-2">
+                      <p className="content-center text-xl">성적</p>
+                    </div>
                   </div>
-                  <div className="flex justify-start px-5 py-1 ml-5">
-                    <p className="content-center text-xl">성적</p>
-                  </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-3">
                   {menteeData.userCourseList &&
                   menteeData.userCourseList.length > 0
                     ? menteeData.userCourseList.map((course) => (
-                        <div className="flex items-center mb-2">
-                          {/* 과목명 */}
-                          <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 mr-10 w-1/2">
-                            <p className="content-center text-xl">
-                              {course.courseName}
-                            </p>
-                          </div>
-                          {/* 체크 표시 */}
-                          <div className="bg-lightGray02 rounded-[15px] justify-start px-5 py-2 w-[60px] ml-3">
-                            {course.isMajor === "MAJOR" ? (
-                              <img
-                                className="content-center "
-                                src="/check.png"
-                                alt="check"
-                              />
-                            ) : (
-                              <img
-                                className="content-center invisible"
-                                src="/check.png"
-                                alt="check"
-                              />
-                            )}
-                          </div>
+                        <div key={course.id} className="flex items-center">
                           {isEditing ? (
-                            <select
-                              value={course.gradeStatus || ""}
-                              onChange={(e) => handleInputGrade(e, course.id)}
-                              disabled
-                              className="bg-lightGray02 rounded-[15px] flex justify-center items-center pl-5 py-2 ml-10 text-lg w-[80px]"
-                            >
-                              <option value="DEFAULT" disabled>
-                                성적
-                              </option>
-                              <option value="APLUS">A+</option>
-                              <option value="A">A0</option>
-                              <option value="BPLUS">B+</option>
-                              <option value="B">B0</option>
-                              <option value="C">C</option>
-                            </select>
-                          ) : (
-                            <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px]">
-                              {course.gradeStatus}
+                            <div className="grid grid-cols-7">
+                              <input
+                                type="text"
+                                name="departmentName"
+                                disabled
+                                value={course.departmentName}
+                                className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-2 text-lg text-lightGray04 col-span-2"
+                              />
+                              <input
+                                type="text"
+                                name="courseName"
+                                disabled
+                                value={course.courseName}
+                                className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-7 text-lg text-lightGray04 col-span-3"
+                              />
+                              <input
+                                type="text"
+                                name="grade"
+                                disabled
+                                value={convertGradeSwitch(course.grade)}
+                                className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-11 text-lg text-lightGray04 col-span-1"
+                              />
+                              <div className="flex justify-end">
+                                <button
+                                  onClick={() => handleDeleteCourse(course.id)}
+                                  className="bg-lightGray01 rounded-full px-2 py-1 ml-10 w-8 h-8 flex items-center justify-center"
+                                >
+                                  <p className="text-white text-xl font-bold">
+                                    -
+                                  </p>
+                                </button>
+                              </div>
                             </div>
-                          )}
-                          {/* 마이너스 버튼 */}
-                          {isEditing && (
-                            <div className="flex justify-end">
-                              <button
-                                onClick={() => handleDeleteCourse(course.id)}
-                                className="bg-lightGray01 rounded-full px-2 py-1 ml-10 w-8 h-8 flex items-center justify-center"
-                              >
-                                <p className="text-white text-xl font-bold">
-                                  -
-                                </p>
-                              </button>
+                          ) : (
+                            <div className="grid grid-cols-6">
+                              <div className="bg-lightGray02 rounded-[15px] justify-start px-5 py-2 w-full ml-2 text-lg col-span-2">
+                                {course.departmentName}
+                              </div>
+                              <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-6 text-lg col-span-3">
+                                {course.courseName}
+                              </div>
+                              <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px] col-span-1">
+                                {convertGradeSwitch(course.grade)}
+                              </div>
                             </div>
                           )}
                         </div>
                       ))
                     : !isEditing && (
                         <p className="text-gray-500 text-base pl-5 pt-2">
-                          현재 등록된 교과목이 없습니다.
+                          현재 등록된 수업이 없습니다.
                         </p>
                       )}
 
@@ -444,51 +558,65 @@ const EditMenteeProfile = () => {
                   {isEditing &&
                     showNewCourseList &&
                     newCourseList.map((course, index) => (
-                      <div className="flex justify-start items-center mb-2">
-                        <input
-                          type="text"
-                          name="courseName"
-                          value={course.courseName}
-                          onChange={(e) => handleInputChange(e, index)}
-                          placeholder="새 과목명"
-                          className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 mr-10 w-1/2 text-lg"
-                        />
-                        <div
-                          className="bg-lightGray02 rounded-[15px] justify-start px-5 py-2 w-[60px] ml-3 cursor-pointer"
-                          onClick={() => handleMajorToggle(index)}
-                        >
-                          {course.isMajor === "MAJOR" ? (
-                            <img
-                              className="content-center "
-                              src="/check.png"
-                              alt="check"
-                            />
-                          ) : (
-                            <img
-                              className="content-center invisible"
-                              src="/check.png"
-                              alt="check"
-                            />
-                          )}
+                      <div
+                        className="grid justify-between items-center grid-cols-7"
+                        key={course.id}
+                      >
+                        <div className="relative col-span-2 ml-2 w-full">
+                          <Dropdown
+                            selectedOption={course.department}
+                            onSelect={(department) =>
+                              handleDepartmentSelect(department, course.id)
+                            }
+                            options={departmentNames || []}
+                            placeholder="학과를 선택해주세요."
+                          >
+                            {({ onSelect }) =>
+                              departmentNames.map((name, index) => (
+                                <div
+                                  key={index}
+                                  onClick={() => onSelect(name)}
+                                  className="h-8 text-sm py-1 pl-5 cursor-pointer hover:bg-gray-200"
+                                >
+                                  {name}
+                                </div>
+                              ))
+                            }
+                          </Dropdown>
                         </div>
-                        <select
-                          value={course.gradeStatus || ""}
-                          onChange={(e) => handleInputGrade(e, index)}
-                          className="bg-lightGray02 rounded-[15px] justify-start pl-3 py-2 ml-10 text-lg w-[80px]"
-                        >
-                          <option value="DEFAULT" disabled>
-                            성적
-                          </option>
-                          <option value="APLUS">A+</option>
-                          <option value="A">A0</option>
-                          <option value="BPLUS">B+</option>
-                          <option value="B">B0</option>
-                          {/* <option value="CPLUS">C+</option> */}
-                          <option value="C">C</option>
-                          {/* <option value="DPLUS">D+</option>
-                        <option value="D">D0</option> */}
-                          {/* <option value="F">F</option> */}
-                        </select>
+                        <div className="col-span-3 w-full ml-7">
+                          <Dropdown
+                            selectedOption={course.courseName}
+                            onSelect={(courseName) =>
+                              handleCourseSelect(courseName, course.id)
+                            }
+                            options={departmentCourse || []}
+                            placeholder="과목을 선택해주세요."
+                          >
+                            {({ onSelect }) => {
+                              if (!Array.isArray(departmentCourse)) return null;
+                              (departmentCourse || []).map((name, index) => (
+                                <div
+                                  key={index}
+                                  onClick={() => onSelect(name)}
+                                  className="h-8 text-sm py-1 pl-5 cursor-pointer hover:bg-gray-200"
+                                >
+                                  {name}
+                                </div>
+                              ));
+                            }}
+                          </Dropdown>
+                        </div>
+                        <div className="w-full ml-11">
+                          <Dropdown
+                            selectedOption={course.grade}
+                            options={["A+", "A0", "B+", "B0", "C"] || []}
+                            onSelect={(grade) =>
+                              handleGradeSelect(grade, course.id)
+                            }
+                            placeholder="성적"
+                          ></Dropdown>
+                        </div>
                         <div className="flex justify-end">
                           <button
                             onClick={() => handleDeleteCourse(course.id)}
@@ -551,32 +679,34 @@ const EditMenteeProfile = () => {
                         </p>
                       )}
                 </div>
-                {/* 추가 버튼 클릭 시 input */}
-                {isEditing &&
-                  showNewMethodList &&
-                  newPreferMethodList.map((method, index) => (
-                    <div
-                      className="flex justify-start items-center mb-2"
-                      key={index}
-                    >
-                      <input
-                        type="text"
-                        value={method.menteePreferredTeachingMethod}
-                        onChange={(e) => handleMethodInputChange(e, index)}
-                        placeholder="수업 방식"
-                        className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 mr-10 w-1/3 text-lg"
-                      />
+                <div className="grid md:grid-cols-4 sm:grid-cols-2">
+                  {/* 추가 버튼 클릭 시 input */}
+                  {isEditing &&
+                    showNewMethodList &&
+                    newPreferMethodList.map((method, index) => (
+                      <div
+                        className="flex justify-start items-center mb-2 relative"
+                        key={method.index}
+                      >
+                        <input
+                          type="text"
+                          value={method.menteePreferredTeaching}
+                          onChange={(e) => handleMethodInputChange(e, index)}
+                          placeholder="수업 방식"
+                          className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 mr-5 w-full text-lg"
+                        />
 
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => handleDeleteMethod(method.id)}
-                          className="bg-lightGray01 rounded-full px-2 py-1 w-8 h-8 flex items-center justify-center"
-                        >
-                          <p className="text-white text-xl font-bold">-</p>
-                        </button>
+                        <div className="flex justify-end ">
+                          <button
+                            onClick={() => handleDeleteMethod(method.id)}
+                            className="absolute top-[-8px] right-[15px] bg-lightGray01 rounded-full w-5 h-5 flex items-center justify-center shadow-sm"
+                          >
+                            <p className="text-white text-xl font-bold">-</p>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                </div>
                 {/* 추가 버튼 */}
                 {isEditing && (
                   <div className="flex justify-end">

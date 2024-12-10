@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search } from "../assets/icons";
+import { loadDepartments } from "../components/SaveDepartments";
+import Dropdown from "../components/Dropdown";
 
 const EditMentorProfile = () => {
   const [mentorData, setMentorData] = useState({
@@ -13,23 +14,37 @@ const EditMentorProfile = () => {
     userProfilePictureUrl: "",
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [newAvailableList, setNewAvailableList] = useState([
-    {
-      dayOfWeek: "DEFAULT",
-      availableStartTime: "DEFAULT",
-      availableEndTime: "DEFAULT",
-    },
-  ]);
-  const [newCourseList, setNewCourseList] = useState([
-    { courseName: "", credit: "", gradeStatus: "DEFAULT" },
-  ]);
+  const [newAvailableList, setNewAvailableList] = useState([]);
+  const [newCourseList, setNewCourseList] = useState([]);
   const [deletedCourseList, setDeletedCourseList] = useState([]);
   const [deletedAvailability, setDeletedAvailability] = useState([]);
   const [showNewAvailableTime, setShowNewAvailableTime] = useState(false);
   const [showNewAvailableCourse, setShowNewAvailableCourse] = useState(false);
+  const [departmentNames, setDepartmentNames] = useState([]);
+  const [departmentCourse, setDepartmentCourse] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedGrade, setSelectedGrade] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const fetchData = async (courseName: string) => {
+    try {
+      const response = await api.get(`/courses?departmentName=${courseName}`);
+      console.log(response.data);
+      setDepartmentCourse(response.data.course);
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  };
+
+  // selectedOption이 변경될 때마다 API 요청
+  useEffect(() => {
+    if (selectedDepartment) {
+      fetchData(selectedDepartment);
+    }
+  }, [selectedDepartment]);
 
   // Mentor Data 불러오기 (페이지 들어올 때마다 실행[location])
   const fetchMentorProfile = async () => {
@@ -47,6 +62,11 @@ const EditMentorProfile = () => {
   useEffect(() => {
     fetchMentorProfile();
   }, [location]);
+
+  useEffect(() => {
+    const departments = loadDepartments();
+    setDepartmentNames(departments);
+  }, []);
 
   if (!mentorData) {
     return <div>Failed to load profile</div>;
@@ -97,28 +117,46 @@ const EditMentorProfile = () => {
     setIsEditing(true);
   };
 
+  const normalizeTime = (time) => {
+    // HH:mm:ss 형식이라면, HH:mm 형식으로 변환
+    if (time.length === 8) {
+      return time.substring(0, 5); // "HH:mm:ss" -> "HH:mm"
+    }
+    return time; // 이미 "HH:mm" 형식이라면 그대로 반환
+  };
+
   const checkForOverlap = (newDay, existingDays) => {
+    console.log("시간 확인", newDay, existingDays);
     if (!newDay.dayOfWeek) return false;
 
     return existingDays.some((existingDay) => {
+      // 요일이 다를 경우 겹침 X -> false
       if (newDay.dayOfWeek !== existingDay.dayOfWeek) {
         return false;
       }
+
+      // 시간을 일관되게 처리
+      const normalizedExistingStartTime = normalizeTime(
+        existingDay.availableStartTime
+      );
+      const normalizedExistingEndTime = normalizeTime(
+        existingDay.availableEndTime
+      );
+      const normalizedNewStartTime = normalizeTime(newDay.availableStartTime);
+      const normalizedNewEndTime = normalizeTime(newDay.availableEndTime);
+
+      // "1970-01-01T" + time 형태로 Date 객체를 만들어 시간 비교
       const existingStartTime = new Date(
-        `1970-01-01T${existingDay.availableStartTime}:00Z`
+        `1970-01-01T${normalizedExistingStartTime}:00Z`
       );
       const existingEndTime = new Date(
-        `1970-01-01T${existingDay.availableEndTime}:00Z`
+        `1970-01-01T${normalizedExistingEndTime}:00Z`
       );
-      const newStartTime = new Date(
-        `1970-01-01T${newDay.availableStartTime}:00Z`
-      );
-      const newEndTime = new Date(`1970-01-01T${newDay.availableEndTime}:00Z`);
+      const newStartTime = new Date(`1970-01-01T${normalizedNewStartTime}:00Z`);
+      const newEndTime = new Date(`1970-01-01T${normalizedNewEndTime}:00Z`);
 
       // 겹치는 시간대가 있는지 체크
-      return (
-        newStartTime < existingEndTime && newEndTime > existingStartTime // 겹침 체크
-      );
+      return newStartTime < existingEndTime && newEndTime > existingStartTime; // 겹침 체크
     });
   };
 
@@ -176,9 +214,9 @@ const EditMentorProfile = () => {
       // course가 유효하지 않으면 undefined를 반환
       return (
         course.courseName.trim() !== "" ||
-        course.credit !== "" ||
-        course.gradeStatus !== "DEFAULT" ||
-        course.courseName !== ""
+        course.grade !== "" ||
+        course.courseName !== "" ||
+        course.department !== ""
       );
     });
 
@@ -187,8 +225,8 @@ const EditMentorProfile = () => {
     const isValid = filteredCourseList.every(
       (course) =>
         course.courseName !== "" &&
-        course.credit !== 0 &&
-        course.gradeStatus !== "DEFAULT"
+        course.grade !== "" &&
+        course.department !== ""
     );
     if (!isValid) {
       console.log("새 과목 리스트:", filteredCourseList);
@@ -217,7 +255,7 @@ const EditMentorProfile = () => {
       };
     };
 
-    const convertGradeStatus = (gradeStatus) => {
+    const convertGradeStatus = (gradeStatus: string) => {
       // gradeStatus가 null인 경우 기본값 설정
       if (!gradeStatus) {
         return ""; // 또는 "DEFAULT"로 설정
@@ -226,24 +264,30 @@ const EditMentorProfile = () => {
       switch (gradeStatus) {
         case "A+":
           return "APLUS";
+        case "A0":
+          return "A";
         case "B+":
           return "BPLUS";
+        case "B0":
+          return "B";
         default:
           return gradeStatus;
       }
     };
 
     const updatedCourseList = [
+      // 기존 mentorData.courseDetails -> 삭제된 수업 삭제
       ...mentorData.courseDetails
         .filter(
           (course) =>
             !deletedCourseList.some((deleted) => deleted.id === course.id)
         )
+        // 각 수업 객체를 매핑하여 변환
         .map((course) => ({
           ...course,
-          gradeStatus: convertGradeStatus(course.gradeStatus),
-          credit: Number(course.credit),
+          grade: convertGradeStatus(course.gradeStatus),
         })),
+      //새로운 CourseList : 기존의 것에 포함되지 않는 새로운 수업만 필터링
       ...filteredCourseList
         .filter(
           (course) =>
@@ -251,19 +295,21 @@ const EditMentorProfile = () => {
               (existing) => existing.id === course.id
             )
         )
+        // 각 수업 객체 매핑
         .map((course) => ({
           ...course,
-          gradeStatus: convertGradeStatus(course.gradeStatus),
-          credit: Number(course.credit),
+          grade: convertGradeStatus(course.grade),
         })),
     ];
 
     console.log("업데이트된 courseList: ", updatedCourseList);
 
     const updatedAvailability = [
-      ...mentorData.availabilities.filter(
-        (day) => !deletedAvailability.some((deleted) => deleted.id === day.id)
-      ),
+      ...mentorData.availabilities
+        .filter(
+          (day) => !deletedAvailability.some((deleted) => deleted.id === day.id)
+        )
+        .map(formatAvailabilityTimes),
       ...filteredAvailableList
         .filter(
           (day) =>
@@ -312,18 +358,16 @@ const EditMentorProfile = () => {
   };
 
   const handleAddAvailableTime = () => {
+    setNewAvailableList((prevList) => [
+      ...prevList,
+      {
+        id: Date.now(), // 고유한 ID 부여
+        dayOfWeek: "DEFAULT",
+        availableStartTime: "DEFAULT",
+        availableEndTime: "DEFAULT",
+      },
+    ]);
     setShowNewAvailableTime(true);
-    // const defaultStartTime = "09:00:00";
-    // const defaultEndTime = "18:00:00";
-    // setNewAvailableList([
-    //   ...newAvailableList,
-    //   {
-    //     dayOfWeek: "",
-    //     availableStartTime: defaultStartTime,
-    //     availableEndTime: defaultEndTime,
-    //     id: new Date().getTime(),
-    //   },
-    // ]);
   };
 
   const handleDeleteAvailableTime = (id) => {
@@ -376,43 +420,28 @@ const EditMentorProfile = () => {
       return { ...prevData, courseDetails: updatedCourses };
     });
   };
+  // // 이거 사라진 건데
+  // const handleInputCourse = (e, index) => {
+  //   const { name, value } = e.target;
+  //   const updatedCourses = [...newCourseList];
+  //   updatedCourses[index][name] = value;
 
-  const handleInputCourse = (e, index) => {
-    const { name, value } = e.target;
-    const updatedCourses = [...newCourseList];
-    updatedCourses[index][name] = value;
-
-    setNewCourseList(updatedCourses);
-  };
-
-  const handleInputCredit = (e, index) => {
-    setNewCourseList((prevList) => {
-      const updatedCredit = [...prevList];
-      updatedCredit[index] = {
-        ...updatedCredit[index],
-        credit: e.target.value,
-      };
-      return updatedCredit;
-    });
-  };
-
-  const handleInputGrade = (e, index) => {
-    setNewCourseList((prevList) => {
-      const updatedGrade = [...prevList];
-      updatedGrade[index] = {
-        ...updatedGrade[index],
-        gradeStatus: e.target.value,
-      };
-      return updatedGrade;
-    });
-  };
+  //   setNewCourseList(updatedCourses);
+  // };
+  // // 이거 사라진 건데
+  // const handleInputGrade = (e, index) => {
+  //   setNewCourseList((prevList) => {
+  //     const updatedGrade = [...prevList];
+  //     updatedGrade[index] = {
+  //       ...updatedGrade[index],
+  //       grade: e.target.value,
+  //     };
+  //     return updatedGrade;
+  //   });
+  // };
 
   const handleAddCourse = () => {
     setShowNewAvailableCourse(true);
-    // setNewCourseList([
-    //   ...newCourseList,
-    //   { courseName: "", credit: "", gradeStatus: "", id: new Date().getTime() },
-    // ]);
   };
 
   const handleCommunicationChange = (newCommunicationType) => {
@@ -427,6 +456,21 @@ const EditMentorProfile = () => {
       ...mentorData,
       selfIntroduction: e.target.value,
     });
+  };
+
+  const handleDepartmentSelect = (department: string) => {
+    setSelectedDepartment(department);
+    setNewCourseList((prev) => [{ ...prev[0], department, courseName: "" }]);
+  };
+
+  const handleCourseSelect = (course: string) => {
+    setSelectedCourse(course);
+    setNewCourseList((prev) => [{ ...prev[0], courseName: course }]);
+  };
+
+  const handleGradeSelect = (grade: string) => {
+    setSelectedGrade(grade);
+    setNewCourseList((prev) => [{ ...prev[0], grade: grade }]);
   };
 
   return (
@@ -524,7 +568,6 @@ const EditMentorProfile = () => {
                           {isEditing ? (
                             <select
                               value={day.dayOfWeek || ""}
-                              onChange={(e) => handleWeekChange(e, day.isValid)}
                               disabled
                               className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-10 text-lg"
                             >
@@ -549,9 +592,6 @@ const EditMentorProfile = () => {
                             <select
                               value={
                                 day.availableStartTime.substring(0, 5) || ""
-                              }
-                              onChange={(e) =>
-                                handleTimeChange(e, day.id, "start")
                               }
                               disabled
                               className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-4 text-lg"
@@ -622,9 +662,13 @@ const EditMentorProfile = () => {
                 {isEditing &&
                   showNewAvailableTime &&
                   newAvailableList.map((day, index) => (
-                    <div className="flex justify-start items-center mb-3">
+                    <div
+                      className="flex justify-start items-center mb-3"
+                      key={day.id}
+                    >
+                      {/* 요일 선택 */}
                       <select
-                        value={day.dayOfWeek || ""}
+                        value={day.dayOfWeek}
                         onChange={(e) => handleWeekChange(e, index)}
                         className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-10 text-lg"
                       >
@@ -637,9 +681,9 @@ const EditMentorProfile = () => {
                           </option>
                         ))}
                       </select>
-                      {/*시작 시간 선택*/}
+                      {/* 시작 시간 선택 */}
                       <select
-                        value={day.availableStartTime || ""}
+                        value={day.availableStartTime}
                         onChange={(e) => handleTimeChange(e, index, "start")}
                         className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 mr-4 text-lg"
                       >
@@ -653,9 +697,9 @@ const EditMentorProfile = () => {
                         ))}
                       </select>
                       <p className="text-xl mr-4">~</p>
-                      {/*종료 시간 선택*/}
+                      {/* 종료 시간 선택 */}
                       <select
-                        value={day.availableEndTime || ""}
+                        value={day.availableEndTime}
                         onChange={(e) => handleTimeChange(e, index, "end")}
                         className="bg-lightGray02 rounded-[15px] justify-start px-3 py-2 text-lg"
                       >
@@ -679,6 +723,7 @@ const EditMentorProfile = () => {
                       </div>
                     </div>
                   ))}
+
                 {/* 추가 버튼 */}
                 {isEditing && (
                   <div className="flex justify-end">
@@ -698,106 +743,83 @@ const EditMentorProfile = () => {
               <h2 className="text-[22px] font-bold">수업, 학점</h2>
               <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
               <div className="pl-2">
-                <div className="flex items-center mb-2">
-                  <div className="flex justify-start px-5 py-1 w-1/2 ml-2">
-                    <p className="content-center text-xl">학과명</p>
+                {isEditing ? (
+                  <div className="grid grid-cols-7 items-center mb-2">
+                    <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
+                      <p className="content-center text-xl">학과명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-5 col-span-3">
+                      <p className="content-center text-xl">과목명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-10 col-span-2">
+                      <p className="content-center text-xl">성적</p>
+                    </div>
                   </div>
-                  <div className="flex justify-start px-5 py-1 w-1/2 ml-2">
-                    <p className="content-center text-xl">과목명</p>
+                ) : (
+                  <div className="grid grid-cols-7 items-center mb-2">
+                    <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
+                      <p className="content-center text-xl">학과명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 col-span-3 ml-2">
+                      <p className="content-center text-xl">과목명</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-7 w-full">
+                      <p className="content-center text-xl">학점 수</p>
+                    </div>
+                    <div className="flex justify-start px-5 py-1 ml-5">
+                      <p className="content-center text-xl">성적</p>
+                    </div>
                   </div>
-                  <div className="flex justify-start px-5 py-1 ml-7">
-                    <p className="content-center text-xl">학점 수</p>
-                  </div>
-                  <div className="flex justify-start px-5 py-1 ml-5">
-                    <p className="content-center text-xl">성적</p>
-                  </div>
-                </div>
+                )}
                 {mentorData.courseDetails && mentorData.courseDetails.length > 0
                   ? mentorData.courseDetails.map((course) => (
                       <div key={course.id} className="flex items-center mb-2">
-                        {/* 학과명 */}
                         {isEditing ? (
-                          <input
-                            type="text"
-                            name="departmentName"
-                            disabled
-                            value={course.departmentName}
-                            onChange={(e) => handleInputCourse(e, course.id)}
-                            placeholder="학과명"
-                            className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg text-lightGray04"
-                          />
-                        ) : (
-                          <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg">
-                            {course.departmentName}
+                          <div className="grid grid-cols-7">
+                            <input
+                              type="text"
+                              name="departmentName"
+                              disabled
+                              value={course.department}
+                              className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-2 text-lg text-lightGray04 col-span-2"
+                            />
+                            <input
+                              type="text"
+                              name="courseName"
+                              disabled
+                              value={course.courseName}
+                              className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-4 text-lg text-lightGray04 col-span-3"
+                            />
+                            <select
+                              value={course.gradeStatus || ""}
+                              disabled
+                              className="bg-lightGray02 rounded-[15px] flex justify-center items-center pl-5 py-2 ml-10 text-lg w-[80px]"
+                            ></select>
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => handleDeleteCourse(course.id)}
+                                className="bg-lightGray01 rounded-full px-2 py-1 ml-10 w-8 h-8 flex items-center justify-center"
+                              >
+                                <p className="text-white text-xl font-bold">
+                                  -
+                                </p>
+                              </button>
+                            </div>
                           </div>
-                        )}
-                        {/* 과목명 */}
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="courseName"
-                            disabled
-                            value={course.courseName}
-                            onChange={(e) => handleInputCourse(e, course.id)}
-                            placeholder="새 과목명"
-                            className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-4 text-lg text-lightGray04"
-                          />
                         ) : (
-                          <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg">
-                            {course.courseName}
-                          </div>
-                        )}
-
-                        {/* 학점 */}
-                        {isEditing ? (
-                          <select
-                            value={course.credit}
-                            onChange={(e) => handleInputCredit(e, course.id)}
-                            disabled
-                            className="bg-lightGray02 rounded-[15px] justify-start pl-8 py-2 ml-10 text-lg w-[80px]"
-                          >
-                            <option value="DEFAULT">학점 수</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                          </select>
-                        ) : (
-                          <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px]">
-                            {course.credit}
-                          </div>
-                        )}
-
-                        {/* 성적 */}
-                        {isEditing ? (
-                          <select
-                            value={course.gradeStatus || ""}
-                            onChange={(e) => handleInputGrade(e, course.id)}
-                            disabled
-                            className="bg-lightGray02 rounded-[15px] flex justify-center items-center pl-5 py-2 ml-10 text-lg w-[80px]"
-                          >
-                            <option value="DEFAULT" disabled>
-                              성적
-                            </option>
-                            <option value="APLUS">A+</option>
-                            <option value="A">A0</option>
-                            <option value="BPLUS">B+</option>
-                            <option value="B">B0</option>
-                            <option value="C">C</option>
-                          </select>
-                        ) : (
-                          <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px]">
-                            {course.gradeStatus}
-                          </div>
-                        )}
-                        {/* 마이너스 버튼 */}
-                        {isEditing && (
-                          <div className="flex justify-end">
-                            <button
-                              onClick={() => handleDeleteCourse(course.id)}
-                              className="bg-lightGray01 rounded-full px-2 py-1 ml-10 w-8 h-8 flex items-center justify-center"
-                            >
-                              <p className="text-white text-xl font-bold">-</p>
-                            </button>
+                          <div className="grid grid-cols-7">
+                            <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-2 text-lg col-span-2">
+                              {course.department}
+                            </div>
+                            <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-6 text-lg col-span-3">
+                              {course.courseName}
+                            </div>
+                            <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px]">
+                              {course.credit}
+                            </div>
+                            <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-5 text-lg w-[80px]">
+                              {course.gradeStatus}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -810,52 +832,55 @@ const EditMentorProfile = () => {
                 {isEditing &&
                   showNewAvailableCourse &&
                   newCourseList.map((course, index) => (
-                    <div className="flex justify-start items-center mb-2">
-                      {/* <input
-                        type="text"
-                        name="departmentName"
-                        value={course.departmentName}
-                        onChange={(e) => handleInputDepartment(e, index)}
-                        placeholder="학과명"
-                        className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg"
-                      >
-                        <button onClick={handleSearch} className="ml-2">
-                          <Search />
-                        </button>
-                      </input> */}
-                      <select
-                        value={course.courseName}
-                        onChange={(e) => handleInputCourse(e, index)}
-                        className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2 text-lg"
-                      />
-                      <select
-                        value={course.credit}
-                        onChange={(e) => handleInputCredit(e, index)}
-                        className="bg-lightGray02 rounded-[15px] justify-start  pl-7 py-2 ml-10 text-lg w-[80px]"
-                      >
-                        <option value="DEFAULT">수</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                      </select>
-                      <select
-                        value={course.gradeStatus || ""}
-                        onChange={(e) => handleInputGrade(e, index)}
-                        className="bg-lightGray02 rounded-[15px] justify-start pl-3 py-2 ml-10 text-lg w-[80px]"
-                      >
-                        <option value="DEFAULT" disabled>
-                          성적
-                        </option>
-                        <option value="APLUS">A+</option>
-                        <option value="A">A0</option>
-                        <option value="BPLUS">B+</option>
-                        <option value="B">B0</option>
-                        {/* <option value="CPLUS">C+</option> */}
-                        <option value="C">C</option>
-                        {/* <option value="DPLUS">D+</option>
-                        <option value="D">D0</option> */}
-                        {/* <option value="F">F</option> */}
-                      </select>
+                    <div className="grid justify-between items-center mb-2 grid-cols-7">
+                      <div className="relative col-span-2 ml-2 w-full">
+                        <Dropdown
+                          selectedOption={selectedDepartment}
+                          onSelect={handleDepartmentSelect}
+                          options={departmentNames}
+                          placeholder="학과를 선택해주세요."
+                        >
+                          {({ onSelect }) =>
+                            departmentNames.map((name, index) => (
+                              <div
+                                key={index}
+                                onClick={() => onSelect(name)}
+                                className="h-8 text-sm py-1 pl-5 cursor-pointer hover:bg-gray-200"
+                              >
+                                {name}
+                              </div>
+                            ))
+                          }
+                        </Dropdown>
+                      </div>
+                      <div className="col-span-3 w-full ml-7">
+                        <Dropdown
+                          selectedOption={selectedCourse}
+                          onSelect={handleCourseSelect}
+                          options={departmentCourse}
+                          placeholder="과목을 선택해주세요."
+                        >
+                          {({ onSelect }) =>
+                            departmentCourse.map((name, index) => (
+                              <div
+                                key={index}
+                                onClick={() => onSelect(name)}
+                                className="h-8 text-sm py-1 pl-5 cursor-pointer hover:bg-gray-200"
+                              >
+                                {name}
+                              </div>
+                            ))
+                          }
+                        </Dropdown>
+                      </div>
+                      <div className="w-full ml-11">
+                        <Dropdown
+                          selectedOption={selectedGrade}
+                          options={["A+", "A0", "B+", "B0", "C"]}
+                          onSelect={handleGradeSelect}
+                          placeholder="성적"
+                        ></Dropdown>
+                      </div>
                       <div className="flex justify-end">
                         <button
                           onClick={() => handleDeleteCourse(course.id)}

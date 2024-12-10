@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const FindPW = () => {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
 
   const handlePwChange = async () => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,7 +20,11 @@ const FindPW = () => {
         { email: email }
       );
       console.log(response.status);
-      alert("임시 비밀번호를 입력하신 이메일로 발송하였습니다.");
+
+      if (response.status === 200) {
+        alert("임시 비밀번호를 입력하신 이메일로 발송하였습니다.");
+        navigate("/login");
+      }
     } catch (error) {
       if (error.response && error.response.status === 404) {
         alert(error.response.data.message);

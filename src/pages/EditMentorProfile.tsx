@@ -214,7 +214,7 @@ const EditMentorProfile = () => {
       // course가 유효하지 않으면 undefined를 반환
       return (
         course.courseName.trim() !== "" ||
-        course.grade !== "" ||
+        course.gradeStatus !== "" ||
         course.courseName !== "" ||
         course.department !== ""
       );
@@ -225,7 +225,7 @@ const EditMentorProfile = () => {
     const isValid = filteredCourseList.every(
       (course) =>
         course.courseName !== "" &&
-        course.grade !== "" &&
+        course.gradeStatus !== "" &&
         course.department !== ""
     );
     if (!isValid) {
@@ -285,7 +285,7 @@ const EditMentorProfile = () => {
         // 각 수업 객체를 매핑하여 변환
         .map((course) => ({
           ...course,
-          grade: convertGradeStatus(course.gradeStatus),
+          gradeStatus: convertGradeStatus(course.gradeStatus),
         })),
       //새로운 CourseList : 기존의 것에 포함되지 않는 새로운 수업만 필터링
       ...filteredCourseList
@@ -298,7 +298,7 @@ const EditMentorProfile = () => {
         // 각 수업 객체 매핑
         .map((course) => ({
           ...course,
-          grade: convertGradeStatus(course.grade),
+          gradeStatus: convertGradeStatus(course.gradeStatus),
         })),
     ];
 
@@ -420,27 +420,17 @@ const EditMentorProfile = () => {
       return { ...prevData, courseDetails: updatedCourses };
     });
   };
-  // // 이거 사라진 건데
-  // const handleInputCourse = (e, index) => {
-  //   const { name, value } = e.target;
-  //   const updatedCourses = [...newCourseList];
-  //   updatedCourses[index][name] = value;
-
-  //   setNewCourseList(updatedCourses);
-  // };
-  // // 이거 사라진 건데
-  // const handleInputGrade = (e, index) => {
-  //   setNewCourseList((prevList) => {
-  //     const updatedGrade = [...prevList];
-  //     updatedGrade[index] = {
-  //       ...updatedGrade[index],
-  //       grade: e.target.value,
-  //     };
-  //     return updatedGrade;
-  //   });
-  // };
 
   const handleAddCourse = () => {
+    setNewCourseList((prevList) => [
+      ...prevList,
+      {
+        id: Date.now(),
+        department: "",
+        gradeStatus: "",
+        courseName: "",
+      },
+    ]);
     setShowNewAvailableCourse(true);
   };
 
@@ -458,19 +448,58 @@ const EditMentorProfile = () => {
     });
   };
 
-  const handleDepartmentSelect = (department: string) => {
-    setSelectedDepartment(department);
-    setNewCourseList((prev) => [{ ...prev[0], department, courseName: "" }]);
+  const handleDepartmentSelect = (department: string, id: string) => {
+    setNewCourseList((prev) =>
+      prev.map((course) =>
+        course.id === id
+          ? { ...course, department, courseName: "" } // department 변경
+          : course
+      )
+    );
+    const newDepartmentCourses = fetchData(department);
+    setDepartmentCourse(newDepartmentCourses);
+    setSelectedCourse("");
+    setSelectedGrade("");
   };
 
-  const handleCourseSelect = (course: string) => {
-    setSelectedCourse(course);
-    setNewCourseList((prev) => [{ ...prev[0], courseName: course }]);
+  const handleCourseSelect = (course: string, id: string) => {
+    setNewCourseList((prev) =>
+      prev.map((courseItem) =>
+        courseItem.id === id
+          ? { ...courseItem, courseName: course } // courseName 업데이트
+          : courseItem
+      )
+    );
   };
 
-  const handleGradeSelect = (grade: string) => {
-    setSelectedGrade(grade);
-    setNewCourseList((prev) => [{ ...prev[0], grade: grade }]);
+  const handleGradeSelect = (gradeStatus: string, id: string) => {
+    setNewCourseList((prev) =>
+      prev.map((courseItem) =>
+        courseItem.id === id
+          ? { ...courseItem, gradeStatus } // grade 업데이트
+          : courseItem
+      )
+    );
+  };
+
+  const convertGradeSwitch = (gradeStatus: string) => {
+    // gradeStatus가 null인 경우 기본값 설정
+    if (!gradeStatus) {
+      return ""; // 또는 "DEFAULT"로 설정
+    }
+
+    switch (gradeStatus) {
+      case "APLUS":
+        return "A+";
+      case "A":
+        return "A0";
+      case "BPLUS":
+        return "B+";
+      case "B":
+        return "B0";
+      default:
+        return gradeStatus;
+    }
   };
 
   return (
@@ -788,13 +817,15 @@ const EditMentorProfile = () => {
                               name="courseName"
                               disabled
                               value={course.courseName}
-                              className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-4 text-lg text-lightGray04 col-span-3"
+                              className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-7 text-lg text-lightGray04 col-span-3"
                             />
-                            <select
-                              value={course.gradeStatus || ""}
+                            <input
+                              type="text"
+                              name="grade"
                               disabled
-                              className="bg-lightGray02 rounded-[15px] flex justify-center items-center pl-5 py-2 ml-10 text-lg w-[80px]"
-                            ></select>
+                              value={convertGradeSwitch(course.gradeStatus)}
+                              className="bg-lightGray02 rounded-[15px] justify-start py-2 w-[80px] ml-11 text-lg text-lightGray04 col-span-1 text-center"
+                            />
                             <div className="flex justify-end">
                               <button
                                 onClick={() => handleDeleteCourse(course.id)}
@@ -832,12 +863,17 @@ const EditMentorProfile = () => {
                 {isEditing &&
                   showNewAvailableCourse &&
                   newCourseList.map((course, index) => (
-                    <div className="grid justify-between items-center mb-2 grid-cols-7">
+                    <div
+                      className="grid justify-between items-center mb-2 grid-cols-7"
+                      key={course.id}
+                    >
                       <div className="relative col-span-2 ml-2 w-full">
                         <Dropdown
-                          selectedOption={selectedDepartment}
-                          onSelect={handleDepartmentSelect}
-                          options={departmentNames}
+                          selectedOption={course.department}
+                          onSelect={(department) =>
+                            handleDepartmentSelect(department, course.id)
+                          }
+                          options={departmentNames || []}
                           placeholder="학과를 선택해주세요."
                         >
                           {({ onSelect }) =>
@@ -855,13 +891,16 @@ const EditMentorProfile = () => {
                       </div>
                       <div className="col-span-3 w-full ml-7">
                         <Dropdown
-                          selectedOption={selectedCourse}
-                          onSelect={handleCourseSelect}
-                          options={departmentCourse}
+                          selectedOption={course.courseName}
+                          onSelect={(courseName) =>
+                            handleCourseSelect(courseName, course.id)
+                          }
+                          options={departmentCourse || []}
                           placeholder="과목을 선택해주세요."
                         >
-                          {({ onSelect }) =>
-                            departmentCourse.map((name, index) => (
+                          {({ onSelect }) => {
+                            if (!Array.isArray(departmentCourse)) return null;
+                            (departmentCourse || []).map((name, index) => (
                               <div
                                 key={index}
                                 onClick={() => onSelect(name)}
@@ -869,15 +908,17 @@ const EditMentorProfile = () => {
                               >
                                 {name}
                               </div>
-                            ))
-                          }
+                            ));
+                          }}
                         </Dropdown>
                       </div>
-                      <div className="w-full ml-11">
+                      <div className="w-[80px] ml-11">
                         <Dropdown
-                          selectedOption={selectedGrade}
+                          selectedOption={course.gradeStatus}
                           options={["A+", "A0", "B+", "B0", "C"]}
-                          onSelect={handleGradeSelect}
+                          onSelect={(gradeStatus) =>
+                            handleGradeSelect(gradeStatus, course.id)
+                          }
                           placeholder="성적"
                         ></Dropdown>
                       </div>

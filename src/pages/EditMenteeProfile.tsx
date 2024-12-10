@@ -354,12 +354,8 @@ const EditMenteeProfile = () => {
     const newDepartmentCourses = fetchData(department);
     setDepartmentCourse(newDepartmentCourses);
 
-    // setSelectedDepartment(department);
-    // setSelectedDepartmentId(id);
     setSelectedCourse("");
     setSelectedGrade("");
-
-    // setNewCourseList((prev) => [{ ...prev[0], department, courseName: "" }]);
   };
 
   const handleCourseSelect = (course: string, id: string) => {
@@ -520,7 +516,7 @@ const EditMenteeProfile = () => {
                                 name="grade"
                                 disabled
                                 value={convertGradeSwitch(course.grade)}
-                                className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-11 text-lg text-lightGray04 col-span-1"
+                                className="bg-lightGray02 rounded-[15px] py-2 w-[80px] ml-11 text-lg text-lightGray04 col-span-1 flex justify-center text-center"
                               />
                               <div className="flex justify-end">
                                 <button
@@ -607,7 +603,7 @@ const EditMenteeProfile = () => {
                             }}
                           </Dropdown>
                         </div>
-                        <div className="w-full ml-11">
+                        <div className="w-[80px] ml-11 ">
                           <Dropdown
                             selectedOption={course.grade}
                             options={["A+", "A0", "B+", "B0", "C"] || []}

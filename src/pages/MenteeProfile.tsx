@@ -113,10 +113,10 @@ const MenteeProfile = () => {
                   <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
                     <p className="content-center text-xl">학과명</p>
                   </div>
-                  <div className="flex justify-start px-5 py-1 ml-7 col-span-3">
+                  <div className="flex justify-start px-5 py-1 ml-12 col-span-3">
                     <p className="content-center text-xl">과목명</p>
                   </div>
-                  <div className="flex justify-start px-5 py-1 ml-10 col-span-2">
+                  <div className="flex justify-start px-5 py-1 ml-[100px] col-span-2">
                     <p className="content-center text-xl">성적</p>
                   </div>
                 </div>

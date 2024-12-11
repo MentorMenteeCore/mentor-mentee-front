@@ -392,7 +392,7 @@ const EditMenteeProfile = () => {
       <div className="content-center ">
         <div className="flex justify-between px-10 py-10 pr-11">
           {/* 왼쪽 프로필 */}
-          <div className="flex justify-center w-4/12 h-min mt-5 sticky top-[200px]">
+          <div className="flex justify-center w-4/12 h-min sticky top-[120px]">
             <div className="w-full">
               <div>
                 <p className="text-2xl font-bold">Mentee</p>
@@ -481,10 +481,10 @@ const EditMenteeProfile = () => {
                     <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
                       <p className="content-center text-xl">학과명</p>
                     </div>
-                    <div className="flex justify-start px-5 py-1 ml-5 col-span-3">
+                    <div className="flex justify-start px-5 py-1 ml-12 col-span-3">
                       <p className="content-center text-xl">과목명</p>
                     </div>
-                    <div className="flex justify-start px-5 py-1 ml-10 col-span-2">
+                    <div className="flex justify-start px-5 py-1 ml-[100px] col-span-2">
                       <p className="content-center text-xl">성적</p>
                     </div>
                   </div>

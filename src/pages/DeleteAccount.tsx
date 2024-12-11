@@ -1,12 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 import api from "../services/api";
+import useWindowHeight from "../components/useWindowHeight";
 
 export default function DeleteAccount() {
   const checkboxRef = useRef(null);
   const [email, setEmail] = useState("");
 
   const navigate = useNavigate();
+
+  //커스텀 훅 사용
+  const windowHeight = useWindowHeight();
 
   const handleDeleteAccount = async () => {
     if (!checkboxRef.current.checked) {
@@ -47,9 +51,9 @@ export default function DeleteAccount() {
   };
   return (
     <>
-      <div>
+      <div style={{ height: windowHeight }}>
         <p className="text-2xl pb-2">회원탈퇴</p>
-        <div className="grid border-2 border-black py-11 px-11 gap-10">
+        <div className="grid border-2 border-black py-7 px-11 gap-5">
           <div className="">
             <p className="text-xl text-lightGray04 pb-3">이메일 확인</p>
             <div className="w-full border-2 border-black rounded-[10px] p-2">
@@ -95,7 +99,7 @@ export default function DeleteAccount() {
 
           <button
             type="submit"
-            className="text-red01 border-2 border-black text-2xl rounded-[20px] py-4 px-9 w-max justify-self-end"
+            className="text-red01/80 border-2 border-black text-xl rounded-[20px] py-3 px-7 w-max justify-self-end"
             onClick={handleDeleteAccount}
           >
             회원 탈퇴

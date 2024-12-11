@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import useWindowHeight from "../components/useWindowHeight";
 
 export default function MentorList() {
   const [mentors, setMentors] = useState({
@@ -15,7 +16,7 @@ export default function MentorList() {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const response = await api.get(`/allmentorlist?page=0&size=4`);
+        const response = await api.get(`/allmentorlist?page=0&size=5`);
         console.log(response.data);
         setMentors(response.data);
       } catch (error) {
@@ -31,7 +32,7 @@ export default function MentorList() {
   };
 
   const handleSortRequest = async (sortBy: string) => {
-    const url = `/allmentorlist?sortBy=${sortBy}&page=${selectedPage}&size=4`;
+    const url = `/allmentorlist?sortBy=${sortBy}&page=${selectedPage}&size=5`;
 
     try {
       const response = await api.get(url);
@@ -55,7 +56,7 @@ export default function MentorList() {
 
     try {
       const response = await api.get(
-        `/allmentorlist?sortBy=${selectedSort}&page=${pageNum}&size=4`
+        `/allmentorlist?sortBy=${selectedSort}&page=${pageNum}&size=5`
       );
 
       setMentors((prev) => ({
@@ -71,9 +72,12 @@ export default function MentorList() {
     }
   };
 
+  //커스텀 훅 사용
+  const windowHeight = useWindowHeight();
+
   return (
     <>
-      <div className="col-span-4 px-20 gap-2">
+      <div className="col-span-4 px-20 gap-2" style={{ height: windowHeight }}>
         {/*px-10이었음 !*/}
         <div className="flex justify-end items-center pt-5 pr-2 pl-5">
           <img
@@ -127,7 +131,7 @@ export default function MentorList() {
                 <div>
                   <img
                     src={mentor.profileUrl}
-                    className="rounded-full w-[100px] h-[100px]"
+                    className="rounded-full w-[60px] h-[60px]"
                   />
                 </div>
                 <div className="ml-5 grid gap-2">

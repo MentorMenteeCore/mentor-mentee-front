@@ -3,5 +3,9 @@
 @tailwind utilities;
 
 :root {
-    --window-height: 100vh;
+  --window-height: 100vh;
+}
+
+.some-element {
+  height: var(--window-height);
 }

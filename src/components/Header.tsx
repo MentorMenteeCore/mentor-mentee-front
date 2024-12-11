@@ -274,7 +274,7 @@ export default function Header() {
           <div className="grid justify-self-end items-center col-span-1">
             <ul className="grid grid-cols-4 justify-items-center items-center md:gap-3 sm:gap-1 md:text-sm sm:text-xs">
               <li>
-                <Link to={"/"}>메세지</Link>
+                <Link to={"/chat"}>메세지</Link>
               </li>
               <li>
                 <Link to={"/"}>알림</Link>

@@ -3,6 +3,7 @@ import api from "../services/api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loadDepartments } from "../components/SaveDepartments";
 import Dropdown from "../components/Dropdown";
+import useWindowHeight from "../components/useWindowHeight";
 
 const EditMentorProfile = () => {
   const [mentorData, setMentorData] = useState({
@@ -502,13 +503,16 @@ const EditMentorProfile = () => {
     }
   };
 
+  //커스텀 훅 사용
+  const windowHeight = useWindowHeight();
+
   return (
     <>
-      <div className="content-center ">
+      <div className="content-center" style={{ height: windowHeight }}>
         <div className="flex justify-between px-10 py-10 pr-11">
           {/* 왼쪽 프로필 */}
-          <div className="flex justify-center w-4/12 h-min mt-5 sticky top-[200px]">
-            <div className="w-full">
+          <div className="flex justify-center w-4/12 h-min sticky top-[120px]">
+            <div>
               <div>
                 <p className="text-2xl font-bold">Mentor</p>
               </div>

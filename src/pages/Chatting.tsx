@@ -1,45 +1,101 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import api from "../services/api";
+import { MessageList } from "../components/MessageList";
 
 const Chatting = () => {
+  // 화면 길이 자동 계산
   const setRootHeight = () => {
     const root = document.documentElement;
     root.style.setProperty("--window-height", `${window.innerHeight - 100}px`);
   };
-
   useEffect(() => {
     setRootHeight();
     window.addEventListener("resize", setRootHeight);
     return () => window.removeEventListener("resize", setRootHeight);
   }, []);
+  // webSocket token 얻어오기
+  useEffect(() => {
+    const fetchSocketToken = async () => {
+      try {
+        const response = await api.get(`/user/socket-token`);
+        console.log(response.data);
+        const { socketToken } = response.data;
+        localStorage.setItem("socketToken", socketToken);
+      } catch (error) {
+        if (error.response) {
+          console.error("Server Error: ", error.response.data);
+        } else {
+          console.error("Request Error: ", error.message);
+        }
+      }
+    };
+    fetchSocketToken(); //비동기 함수 호출
+  }, []);
+  // webSocket 연결
+  const socketRef = useRef(null);
+  useEffect(() => {
+    const socketToken = localStorage.getItem("socketToken");
+    const socket = new WebSocket(
+      `${import.meta.env.VITE_SOCKET_BASE_URL}/ws-stomp?token=${socketToken}`
+    );
+    socketRef.current = socket;
+    socket.onopen = () => {
+      console.log("WebSocket 연결이 열렸습니다.");
+    };
+    socket.onmessage = (message) => {
+      console.log("message: ", message.data);
+    };
+    socket.onerror = (error) => {
+      console.error("WebSocket error: ", error);
+    };
+    socket.onclose = () => {
+      console.log("WebSoket close");
+    };
 
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
+  // message 연결
+  const [messages, setMessages] = useState({
+    chatMessages: "",
+    chatRooms: [],
+  });
+  const [currentMessageId, setCurrentMessageId] = useState(null);
+  const handleSelectMessage = (id) => setCurrentMessageId(id);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const userId =
+        localStorage.getItem("userId") || sessionStorage.getItem("userId");
+      try {
+        const response = await api.get(`/message?thisUserId=${userId}`);
+        console.log("Messages fetched: ", response.data);
+        setMessages(response.data);
+      } catch (error) {
+        if (error.response) {
+          console.error("Server Error: ", error.response.data);
+        }
+      }
+    };
+    fetchMessages();
+  }, []);
+  const handleSendMessage = () => {
+    console.log("Send message");
+  };
   return (
     <>
       <div
         className="px-8 pt-4 grid grid-cols-5"
         style={{ height: "var(--window-height)" }}
       >
-        {/*메시지 미리보기*/}
-        <div className="sm:col-span-2 md:col-span-1">
-          <p className="pb-2 text-2xl">메시지</p>
-          <div className="bg-black h-1"></div>
-          {/* 메시지들 */}
-          <div
-            className="bg-lightGray01/50 overflow-hidden h-screen mt-4"
-            style={{ height: "calc(var(--window-height) - 100px - 10px)" }}
-          >
-            <div className="flex gap-3 px-3 py-3 items-center">
-              <img
-                src="/profile.png"
-                className="rounded-full w-[50px] h-[50px]"
-              />
-              <div>
-                <p className="font-bold">박아무개</p>
-                <p className="text-sm">네 다음번 수업 에에</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        {/*메시지 미리보기 부분*/}
+        <MessageList
+          messages={messages}
+          onSelectMessage={handleSelectMessage}
+        />
         {/*메시지 자세히보기*/}
         <div
           className="border-2 border-black md:col-span-4 sm:col-span-3 ml-8 mt-9 py-3 flex flex-col h-full"

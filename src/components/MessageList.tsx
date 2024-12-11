@@ -2,13 +2,13 @@ import { format, isToday, parseISO } from "date-fns";
 
 export const MessageList = ({ messages, onSelectMessage }) => {
   return (
-    <div className="sm:col-span-2 md:col-span-1">
+    <div className="sm:col-span-2 md:col-span-1 ">
       {/* 메시지 미리보기 */}
       <p className="pb-2 text-2xl">메시지</p>
       <div className="bg-black h-1"></div>
       {/* 메시지들 */}
       <div
-        className="bg-lightGray01/50 overflow-hidden h-screen mt-4"
+        className="bg-lightGray01/50 overflow-hidden h-screen mt-4 cursor-pointer"
         style={{ height: "calc(var(--window-height) - 100px - 10px)" }}
       >
         {messages.chatRooms.map((message) => {
@@ -35,7 +35,7 @@ export const MessageList = ({ messages, onSelectMessage }) => {
             <div
               className=""
               key={message.roomId}
-              onClick={() => onSelectMessage(message.roomId)}
+              onClick={() => onSelectMessage(message.otherUserId)}
             >
               <div className="flex items-center gap-3 px-3 py-3">
                 <img

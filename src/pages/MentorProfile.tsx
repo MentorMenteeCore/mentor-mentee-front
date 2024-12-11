@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 const MentorProfile = () => {
   const { nickname } = useParams();
   const [mentorData, setMentorData] = useState({
+    mentorId: "",
     courseDetails: [],
     availabilities: [],
     waysOfCommunication: "",
@@ -13,6 +14,9 @@ const MentorProfile = () => {
     userProfilePictureUrl: "",
     reviews: [],
   });
+  const currentUserId =
+    localStorage.getItem("userId") || sessionStorage.getItem("userId");
+  console.log(currentUserId, mentorData.mentorId);
 
   useEffect(() => {
     const fetchMentorData = async () => {
@@ -86,7 +90,7 @@ const MentorProfile = () => {
           <div>
             <div className="flex justify-center">
               <img
-                src={mentorData.profileUrl}
+                src={mentorData.userProfilePictureUrl}
                 alt="프로필 이미지"
                 className="h-[250px] w-[250px] rounded-full"
               />
@@ -99,9 +103,7 @@ const MentorProfile = () => {
             <div className="w-full h-1 bg-black"></div>
             <div className="flex justify-center pt-4">
               <p className="text-xl py-1 px-10">
-                {mentorData.selfIntroduction.length > 0
-                  ? mentorData.selfIntroduction
-                  : "안녕하세요-!"}
+                {mentorData.selfIntroduction}
               </p>
             </div>
           </div>
@@ -147,14 +149,17 @@ const MentorProfile = () => {
             <h2 className="text-[22px] font-bold">수업, 학점</h2>
             <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
             <div className="pl-2">
-              <div className="flex items-center mb-2">
-                <div className="flex justify-start px-5 py-1 w-1/2 ml-2">
+              <div className="grid grid-cols-7 items-center mb-2">
+                <div className="flex justify-start px-5 py-1 col-span-2">
+                  <p className="content-center text-xl">학과명</p>
+                </div>
+                <div className="flex justify-start px-5 py-1 col-span-3 ml-6">
                   <p className="content-center text-xl">과목명</p>
                 </div>
-                <div className="flex justify-start px-5 py-1 ml-1">
-                  <p className="content-center text-xl">학점 수</p>
+                <div className="flex justify-start px-5 py-1 ml-7 w-full">
+                  <p className="content-center text-xl">학점수</p>
                 </div>
-                <div className="flex justify-start px-5 py-1">
+                <div className="flex justify-start px-5 py-1 ml-5">
                   <p className="content-center text-xl">성적</p>
                 </div>
               </div>
@@ -162,18 +167,19 @@ const MentorProfile = () => {
               mentorData.courseDetails.length > 0 ? (
                 mentorData.courseDetails.map((course) => (
                   <div key={course.id} className="flex items-center mb-2">
-                    <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-1/2 ml-2">
-                      <p className="content-center text-xl">
+                    <div className="grid grid-cols-7">
+                      <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-2 text-lg col-span-2">
+                        {course.department}
+                      </div>
+                      <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-6 text-lg col-span-3">
                         {course.courseName}
-                      </p>
-                    </div>
-                    <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10">
-                      <p className="text-xl text-center m-0">{course.credit}</p>
-                    </div>
-                    <div className="bg-lightGray02 rounded-[15px] justify-start px-4 py-2 ml-11">
-                      <p className="text-center text-xl">
+                      </div>
+                      <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-9 text-lg w-[80px]">
+                        {course.credit}
+                      </div>
+                      <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-5 text-lg w-[80px]">
                         {course.gradeStatus}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -238,11 +244,13 @@ const MentorProfile = () => {
             </div>
 
             {/* 문의 버튼 */}
-            {/* <div className="flex justify-end fixed bottom-16 right-12">
-            <button className="h-[61px] bg-[#FF0000] opacity-50 rounded-[10px] text-white text-2xl px-[50px] py-[13px] animate-bounce">
-              문의하기
-            </button>
-          */}
+            {String(currentUserId) !== String(mentorData.mentorId) && (
+              <div className="flex justify-end fixed bottom-10 right-12">
+                <button className="bg-red01/50 rounded-[12px] text-white text-xl px-7 py-3 ">
+                  문의하기
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

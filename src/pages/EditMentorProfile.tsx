@@ -792,14 +792,14 @@ const EditMentorProfile = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-7 items-center mb-2">
-                    <div className="flex justify-start px-5 py-1 ml-2 col-span-2">
+                    <div className="flex justify-start px-5 py-1 col-span-2">
                       <p className="content-center text-xl">학과명</p>
                     </div>
-                    <div className="flex justify-start px-5 py-1 col-span-3 ml-2">
+                    <div className="flex justify-start px-5 py-1 col-span-3 ml-6">
                       <p className="content-center text-xl">과목명</p>
                     </div>
                     <div className="flex justify-start px-5 py-1 ml-7 w-full">
-                      <p className="content-center text-xl">학점 수</p>
+                      <p className="content-center text-xl">학점수</p>
                     </div>
                     <div className="flex justify-start px-5 py-1 ml-5">
                       <p className="content-center text-xl">성적</p>
@@ -851,7 +851,7 @@ const EditMentorProfile = () => {
                             <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-6 text-lg col-span-3">
                               {course.courseName}
                             </div>
-                            <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-10 text-lg w-[80px]">
+                            <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-9 text-lg w-[80px]">
                               {course.credit}
                             </div>
                             <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-5 text-lg w-[80px]">

@@ -66,7 +66,7 @@ export default function Header() {
       const data = await fetchSearchResults(apiUrl, params);
       if (data) {
         setSearchResults(data);
-        navigate(`?departmentName=${encodeURIComponent(searchDepartment)}`);
+        navigate(`/?departmentName=${encodeURIComponent(searchDepartment)}`);
       }
     } else if (selectedSearchType === "nickname" && searchNickname.trim()) {
       const apiUrl = `${import.meta.env.VITE_API_KEY}/search/user`;
@@ -76,11 +76,11 @@ export default function Header() {
       if (user) {
         console.log("유저의 정보", user);
         if (user.mentorId) {
-          navigate(
+          window.location.replace(
             `/profile/mentor/${encodeURIComponent(user.nickName)}&size=100`
           );
         } else if (user.menteeNickName) {
-          navigate(
+          window.location.replace(
             `/profile/mentee/${encodeURIComponent(
               user.menteeNickName
             )}&size=100`

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useParams } from "react-router-dom";
+import { ButtonWithChat } from "../components/ButtonWithChat";
 
 const MentorProfile = () => {
   const { nickname } = useParams();
@@ -245,11 +246,10 @@ const MentorProfile = () => {
 
             {/* 문의 버튼 */}
             {String(currentUserId) !== String(mentorData.mentorId) && (
-              <div className="flex justify-end fixed bottom-10 right-12">
-                <button className="bg-red01/50 rounded-[12px] text-white text-xl px-7 py-3 ">
-                  문의하기
-                </button>
-              </div>
+              <ButtonWithChat
+                currentUserId={String(currentUserId)}
+                mentorId={String(mentorData.mentorId)}
+              />
             )}
           </div>
         </div>

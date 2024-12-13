@@ -51,9 +51,13 @@ export const MessageList = ({ messages, onSelectMessage }) => {
                     <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis w-32">
                       {message.lastMessageContent}
                     </p>
-                    <div className="rounded-full bg-red01/50 text-xs w-5 h-5 font-bold text-center text-white">
-                      {message.unreadCount}
-                    </div>
+                    {message.unreadCount !== 0 ? (
+                      <div className="rounded-full bg-red01/50 text-xs w-5 h-5 font-bold text-center text-white">
+                        {message.unreadCount}
+                      </div>
+                    ) : (
+                      <div className="rounded-fullw-5 h-5 font-bold text-center text-white"></div>
+                    )}
                   </div>
                 </div>
               </div>

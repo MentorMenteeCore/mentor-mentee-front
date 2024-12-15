@@ -43,6 +43,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         sessionStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         sessionStorage.removeItem("refreshToken");
+        localStorage.removeItem("userId");
+        sessionStorage.removeItem("userId");
+        localStorage.removeItem("socketToken");
         console.log("로그아웃 성공");
       } else {
         console.log("로그아웃 실패: ", response.data);

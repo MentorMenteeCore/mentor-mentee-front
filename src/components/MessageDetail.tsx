@@ -39,7 +39,6 @@ export const MessageDetail = ({
         }
       );
       setDetails(messagesWithValidDates);
-      console.log(details);
       setChatRooms(response.data.chatRooms);
     } catch (error) {
       console.error("Error fetching message details:", error);
@@ -48,35 +47,51 @@ export const MessageDetail = ({
 
   useEffect(() => {
     if (selectedMessageId) fetchMessages();
+    console.log(details);
   }, [selectedMessageId]);
+
+  //stomp로 받은 메세지 구조 변환
+  const transformStompMessageToApiFormat = (receivedMessages, userId) => {
+    return {
+      content: receivedMessages.message,
+      isCurrentUser: receivedMessages.senderId === userId,
+      messageId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      readOrNot: !!receivedMessages.otherUserJoined,
+      // senderNickname: "",
+      senderProfilePicture: receivedMessages.message,
+      time: receivedMessages.currentTime,
+    };
+  };
 
   // 상대방이 보낸 메세지 실시간 확인
   useEffect(() => {
     if (!socket) return;
 
-    socket.onmessage = (message) => {
-      const receivedMessages = JSON.parse(message.data);
-      console.log(message.data);
-      if (receivedMessages.roomId === selectedMessageId) {
-        // 수신된 메시지의 시간 확인 및 처리
-        const receivedTime = new Date(receivedMessage.time);
-        const formattedTime = isNaN(receivedTime.getTime())
-          ? new Date().toISOString()
-          : receivedTime.toISOString();
-        const updatedReceivedMessage = {
-          ...receivedMessages,
-          time: formattedTime,
-        };
-        setDetails((prevDetails) => [...prevDetails, updatedReceivedMessage]);
-      }
-    };
+    const userId =
+      localStorage.getItem("userId") || sessionStorage.getItem("userId");
+
+    // stompClient 구독
+    const otherUserId = selectedMessageId;
+
+    const [smallUserId, largeUserId] = [
+      Math.min(Number(userId), Number(otherUserId)),
+      Math.max(Number(userId), Number(otherUserId)),
+    ];
+
+    const subscribePath = `/sub/chat/room/${smallUserId}/${largeUserId}`;
+    const subscription = socket.subscribe(subscribePath, (message) => {
+      console.log("수신된 메시지: ", message.body);
+      const receivedMessages = JSON.parse(message.body);
+      setDetails((prevMessages) => [
+        ...prevMessages,
+        transformStompMessageToApiFormat(receivedMessages, userId),
+      ]);
+    });
 
     return () => {
-      if (socket) {
-        WebSocket.onmessage = null;
-      }
+      subscription.unsubscribe();
     };
-  }, [socket, selectedMessageId]);
+  }, [selectedMessageId]);
 
   // 메세지 보내기 및 실시간 확인
   const handleSendMessage = () => {
@@ -101,7 +116,7 @@ export const MessageDetail = ({
     (room) => room.otherUserId === selectedMessageId
   );
 
-  return (
+  return details?.length > 0 ? (
     <div
       className="border-2 border-black rounded-xl ml-8 mt-9 pt-3 flex flex-col relative"
       style={{ height: "calc(var(--window-height) - 87px)" }}
@@ -189,6 +204,10 @@ export const MessageDetail = ({
           </div>
         </div>
       </div>
+    </div>
+  ) : (
+    <div className="p-10 text-lightGray04">
+      <p>채팅방을 선택해주세요.</p>
     </div>
   );
 };

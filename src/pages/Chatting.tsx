@@ -5,7 +5,8 @@ import { MessageDetail } from "../components/MessageDetail";
 import { Stomp } from "@stomp/stompjs";
 
 const Chatting = () => {
-  const [currentMessageId, setCurrentMessageId] = useState<number>(0); // currentMessageId 상태 정의 (클릭한 상대방 id)
+  // currentMessageUserId 상태 정의 (클릭한 상대방 id)
+  const [currentMessageUserId, setCurrentMessageUserId] = useState<number>(0);
   const [messages, setMessages] = useState({ chatMessages: [], chatRooms: [] });
   const [userId, setUserId] = useState<number | null>(null);
   const [stompClient, setStompClient] = useState<Stomp.Client | null>(null);
@@ -93,7 +94,7 @@ const Chatting = () => {
         console.log("STOMP 연결 성공:", frame);
 
         // 연결 후 구독 처리
-        const otherUserId = currentMessageId;
+        const otherUserId = currentMessageUserId;
 
         const [smallUserId, largeUserId] = [
           Math.min(Number(userId), Number(otherUserId)),
@@ -137,10 +138,10 @@ const Chatting = () => {
       return;
     }
 
-    if (!messageContent.trim() || currentMessageId === 0) {
+    if (!messageContent.trim() || currentMessageUserId === 0) {
       console.error("메시지 내용 또는 현재 메시지 ID가 유효하지 않습니다.", {
         messageContent,
-        currentMessageId,
+        currentMessageUserId,
       });
       return;
     }
@@ -195,12 +196,12 @@ const Chatting = () => {
       >
         <MessageList
           messages={messages}
-          onSelectMessage={setCurrentMessageId}
+          onSelectMessage={setCurrentMessageUserId}
           socket={stompClient}
         />
         <div className="md:col-span-4 sm:col-span-3">
           <MessageDetail
-            selectedMessageId={currentMessageId}
+            selectedMessageId={currentMessageUserId}
             socket={stompClient}
             onSendMessage={handleSendMessage}
           />

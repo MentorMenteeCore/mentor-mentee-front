@@ -3,69 +3,36 @@ import { useEffect, useState } from "react";
 
 export const MessageList = ({ messages, onSelectMessage, socket }) => {
   const [messageList, setMessageList] = useState(messages.chatRooms);
+
   // 실시간으로 메세지 받기
   useEffect(() => {
     if (!socket) return;
 
-    socket.onmessage = (event) => {
-      const incomingMessage = JSON.parse(event.data);
+    const userId =
+      localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
-      if (incomingMessage.roomId) {
-        setMessageList((prevMessages) => {
-          // 받은 메시지를 기존 리스트에 추가
-          const updatedMessages = prevMessages.map((message) =>
-            message.roomId === incomingMessage.roomId
-              ? {
-                  ...message,
-                  lastMessageContent: incomingMessage.content,
-                  lastMessageTime: incomingMessage.time,
-                  unreadCount: message.unreadCount + 1,
-                }
-              : message
-          );
-          // 새로운 채팅방 메시지라면 새롭게 추가
-          if (
-            !updatedMessages.some(
-              (msg) => msg.roomId === incomingMessage.roomId
-            )
-          ) {
-            updatedMessages.push({
-              roomId: incomingMessage.roomId,
-              otherUserId: incomingMessage.senderId,
-              otherUserProfilePicture: incomingMessage.senderProfilePicture,
-              otherUserNickname: incomingMessage.senderNickname,
-              lastMessageContent: incomingMessage.content,
-              lastMessageTime: incomingMessage.time,
-              unreadCount: incomingMessage.unreadCount,
-            });
-          }
-        });
-      }
-      return updatedMessages;
-    };
+    // stompClient 구독
+    const otherUserId = selectedMessageId;
+
+    const [smallUserId, largeUserId] = [
+      Math.min(Number(userId), Number(otherUserId)),
+      Math.max(Number(userId), Number(otherUserId)),
+    ];
+
+    const subscribePath = `/sub/chat/room/${smallUserId}/${largeUserId}`;
+    const subscription = socket.subscribe(subscribePath, (message) => {
+      console.log("수신된 메시지: ", message.body);
+      const receivedMessages = JSON.parse(message.body);
+      setDetails((prevMessages) => [
+        ...prevMessages,
+        transformStompMessageToApiFormat(receivedMessages, userId),
+      ]);
+    });
 
     return () => {
-      if (socket) {
-        socket.onmessage = null;
-      }
+      subscription.unsubscribe();
     };
   }, [socket]);
-
-  // 메세지 보내기 시, 상태에 즉시 반영
-  // const handleSendMessage = (roomId, content) => {
-  //   setMessageList((prevMessages) => {
-  //     return prevMessages.map((message) =>
-  //       message.roomId === roomId
-  //         ? {
-  //             ...message,
-  //             lastMessageContent: content,
-  //             lastMessageTime: new Date().toISOString(),
-  //             unreadCount: message.unreadCount + 1,
-  //           }
-  //         : message
-  //     );
-  //   });
-  // };
 
   return (
     <div className="sm:col-span-2 md:col-span-1 ">

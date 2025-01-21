@@ -2,37 +2,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
 
 export const MessageList = ({ messages, onSelectMessage, socket }) => {
-  const [messageList, setMessageList] = useState(messages.chatRooms);
-
-  // 실시간으로 메세지 받기
-  useEffect(() => {
-    if (!socket) return;
-
-    const userId =
-      localStorage.getItem("userId") || sessionStorage.getItem("userId");
-
-    // stompClient 구독
-    const otherUserId = selectedMessageId;
-
-    const [smallUserId, largeUserId] = [
-      Math.min(Number(userId), Number(otherUserId)),
-      Math.max(Number(userId), Number(otherUserId)),
-    ];
-
-    const subscribePath = `/sub/chat/room/${smallUserId}/${largeUserId}`;
-    const subscription = socket.subscribe(subscribePath, (message) => {
-      console.log("수신된 메시지: ", message.body);
-      const receivedMessages = JSON.parse(message.body);
-      setDetails((prevMessages) => [
-        ...prevMessages,
-        transformStompMessageToApiFormat(receivedMessages, userId),
-      ]);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [socket]);
+  const [messageList, setMessageList] = useState([messages.chatRooms]);
 
   return (
     <div className="sm:col-span-2 md:col-span-1 ">

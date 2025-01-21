@@ -93,22 +93,37 @@ const Chatting = () => {
       (frame) => {
         console.log("STOMP 연결 성공:", frame);
 
-        // 연결 후 구독 처리
-        const otherUserId = currentMessageUserId;
+        // 연결 후 모든 채팅방 구독
+        messages.chatRooms.forEach((room) => {
+          const [smallUserId, largeUserId] = [
+            Math.min(Number(userId), Number(otherUserId)),
+            Math.max(Number(userId), Number(otherUserId)),
+          ];
+          const subscribePath = `/sub/chat/room/${smallUserId}/${largeUserId}`;
+          stompClient.subscribe(subscribePath, (message) => {
+            console.log("수신된 메시지: ", message.body);
+            const receivedMessage = JSON.parse(message.body);
 
-        const [smallUserId, largeUserId] = [
-          Math.min(Number(userId), Number(otherUserId)),
-          Math.max(Number(userId), Number(otherUserId)),
-        ];
+            setMessages((prevMessages) => {
+              const updatedChatRooms = prevMessages.chatRooms.map((r) => {
+                if (r.roomId === receivedMessage.roomId) {
+                  return {
+                    ...r,
+                    lastMessage: receivedMessage.message, // 마지막 메시지 업데이트
+                    unread:
+                      r.roomId === currentMessageUserId ? 0 : r.unread + 1, // 현재 방이 아니라면 unread 증가
+                  };
+                }
+                return r;
+              });
 
-        const subscribePath = `/sub/chat/room/${smallUserId}/${largeUserId}`;
-        stompClient.subscribe(subscribePath, (message) => {
-          console.log("수신된 메시지: ", message.body);
-          const receivedMessages = JSON.parse(message.body);
-          setMessages((prevMessages) => ({
-            ...prevMessages,
-            chatMessages: [...prevMessages.chatMessages, receivedMessages],
-          }));
+              return {
+                ...prevMessages,
+                chatMessages: [...prevMessages.chatMessages, receivedMessage], // 세부 메시지 추가
+                chatRooms: updatedChatRooms, // 채팅 목록 업데이트
+              };
+            });
+          });
         });
       },
       (error) => {

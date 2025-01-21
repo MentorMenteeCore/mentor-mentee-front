@@ -1,208 +1,260 @@
+import { useEffect, useState } from "react";
+import api from "../services/api";
+import { useParams } from "react-router-dom";
+import { ButtonWithChat } from "../components/ButtonWithChat";
+
 const MentorProfile = () => {
+  const { nickname } = useParams();
+  const [mentorData, setMentorData] = useState({
+    mentorId: "",
+    courseDetails: [],
+    availabilities: [],
+    waysOfCommunication: "",
+    selfIntroduction: "",
+    nickName: "",
+    userProfilePictureUrl: "",
+    reviews: [],
+  });
+  const currentUserId =
+    localStorage.getItem("userId") || sessionStorage.getItem("userId");
+  console.log(currentUserId, mentorData.mentorId);
+
+  useEffect(() => {
+    const fetchMentorData = async () => {
+      const accessToken =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!accessToken) {
+        console.error("Access token is missing");
+        return;
+      }
+      try {
+        let response;
+        if (nickname) {
+          response = await api.get(`/search/user?nickname=${nickname}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        } else {
+          response = await api.get(`/mentordetails/update?page=0`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        }
+        if (response && response.data) {
+          const data = response.data;
+          console.log(response);
+          setMentorData(data);
+        } else {
+          console.error("Error fetching mentee data");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchMentorData();
+  }, []);
+
+  if (!mentorData) {
+    return <div>Loading... </div>;
+  }
+
+  const dayOfWeekMap = {
+    MONDAY: "월요일",
+    TUESDAY: "화요일",
+    WEDNESDAY: "수요일",
+    THURSDAY: "목요일",
+    FRIDAY: "금요일",
+    SATURDAY: "토요일",
+    SUNDAY: "일요일",
+  };
+
+  const renderStars = (rate) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rate) {
+        stars.push(<img src="/star-full.png" alt="Full Start" key={i} />);
+      } else {
+        stars.push(<img src="/star-empty.png" alt="Empty Star" key={i} />);
+      }
+    }
+    return stars;
+  };
+
   return (
-    <>
-      <div className="content-center ">
-        <div className="flex justify-between px-10 py-10 pr-11">
-          {/*왼쪽 프로필*/}
-          <div className="flex justify-center w-4/12">
-            <div className="fixed">
-              <div className="flex justify-center">
-                <img src="/profile.png" />
-              </div>
-              <p className="text-xl flex justify-center mt-0.5">Mentor</p>
-              <div className="flex justify-center pt-[5px] pb-2">
-                <img src="/mileage.png" alt="씨앗" />
-                <h2 className="text-2xl font-bold">박아무개1</h2>
-              </div>
-              {/*line*/}
-              <div className="w-full h-1 bg-black "></div>
-              <div className="flex justify-center pt-[14px]">
-                <p className="text-xl">
-                  안녕하세요! <br /> 궁금한 거 있으시면 언제든 <br /> 연락주세요
-                  !0!
-                </p>
-              </div>
+    <div className="content-center">
+      <div className="flex justify-between px-10 py-10 pr-11">
+        {/* 왼쪽 프로필 */}
+        <div className="flex justify-center w-4/12 h-min mt-5 sticky top-[200px]">
+          <div>
+            <div className="flex justify-center">
+              <img
+                src={mentorData.userProfilePictureUrl}
+                alt="프로필 이미지"
+                className="h-[250px] w-[250px] rounded-full"
+              />
             </div>
-          </div>
-          {/*오른쪽 정보*/}
-          <div className="w-7/12 mr-4">
-            <div className="mb-16">
-              <h2 className="text-[22px] font-bold">연락 가능 시간</h2>
-              <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
-              <div className="pl-[7px]">
-                <div className="flex mb-[11px]">
-                  <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[11px] py-[6px] mr-[21px]">
-                    <p className="content-center text-xl">월요일</p>
-                  </div>
-                  <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[14px] py-[6px]">
-                    <p className="content-center text-xl">12:00 ~ 18:00</p>
-                  </div>
-                </div>
-                <div className="flex mb-[11px]">
-                  <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[11px] py-[6px] mr-[21px]">
-                    <p className="content-center text-xl">화요일</p>
-                  </div>
-                  <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[14px] py-[6px]">
-                    <p className="content-center text-xl">16:00 ~ 20:00</p>
-                  </div>
-                </div>
-              </div>
+            <p className="text-xl flex justify-center mt-0.5 mb-1">Mentor</p>
+            <div className="flex justify-center pt-3 pb-2">
+              <img src="/mileage.png" alt="씨앗" />
+              <h2 className="text-2xl font-bold">{mentorData.nickName}</h2>
             </div>
-            <div className="w-full mb-16">
-              <h2 className="text-[22px] font-bold">수업, 학점</h2>
-              <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
-              <div className="w-[90%] pl-[7px] text-xl">
-                <div>
-                  <div className="flex justify-between mb-[13px]">
-                    <div className="w-1/2 pl-4">
-                      <p>과목명</p>
-                    </div>
-                    <div>
-                      <p>학점 수</p>
-                    </div>
-                    <div>
-                      <p>전공</p>
-                    </div>
-                    <div>
-                      <p className="">성적</p>
-                    </div>
-                  </div>
-                  {/* 비율 모르겠슴다 ㅠㅠ*/}
-                  <div className="mb-[19px]">
-                    <div className="flex justify-between mb-[15px]">
-                      <div className="w-1/2 bg-[#F5F5F5] rounded-[15px] py-[6px] px-[17px]">
-                        <p>빅데이터시스템</p>
-                      </div>
-                      <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center py-[6px] px-4">
-                        <p>3학점</p>
-                      </div>
-                      <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center py-[10px] px-4">
-                        <img src="/check.png" alt="" />
-                      </div>
-                      <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center py-[6px] px-4">
-                        <p>A+</p>
-                      </div>
-                    </div>
-                    <div className="flex justify-between content-center">
-                      <img src="/seed.png" alt="" />
-                      <div className="w-full h-[23px] rounded-[15px] bg-[#F5F5F5] mt-1">
-                        <div className="w-4/12 h-[23px] rounded-[15px] bg-[#FF0000] opacity-50 flex justify-center items-center text-[15px] text-white">
-                          <p>350</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mb-[19px]">
-                    <div className="flex justify-between mb-[15px]">
-                      <div className="w-1/2 bg-[#F5F5F5] rounded-[15px] py-[6px] px-[17px]">
-                        <p>컴파일러</p>
-                      </div>
-                      <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center py-[6px] px-4">
-                        <p>3학점</p>
-                      </div>
-                      <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center py-[10px] px-4">
-                        <img src="/check.png" alt="" />
-                      </div>
-                      <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center py-[6px] px-4">
-                        <p>A0</p>
-                      </div>
-                    </div>
-                    <div className="flex justify-between content-center">
-                      <img src="/seed.png" alt="" />
-                      <div className="w-full h-[23px] rounded-[15px] bg-[#F5F5F5] mt-1">
-                        <div className="w-9/12 h-[23px] rounded-[15px] bg-[#FF0000] opacity-50 flex justify-center items-center text-[15px] text-white">
-                          <p>700</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="w-full mb-16">
-              <h2 className="text-[22px] font-bold">대면/비대면 여부</h2>
-              <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
-              <div className="w-full flex pl-5 text-xl h-[28px] ">
-                <div className="flex mr-[30px]">
-                  <div className="w-[30px] h-[30px] bg-[#D9D9D9] rounded-full mr-5 flex justify-center items-center">
-                    <div className="w-[15px] h-[15px] bg-[#FF0000] opacity-50 rounded-full"></div>
-                  </div>
-                  <p>대면</p>
-                </div>
-                <div className="flex mr-[30px]">
-                  <div className="w-[30px] h-[30px] bg-[#D9D9D9] rounded-full mr-5 flex justify-center items-center">
-                    <div className="w-[15px] h-[15px] bg-[#FF0000] opacity-50 rounded-full"></div>
-                  </div>
-                  <p>비대면</p>
-                </div>
-              </div>
-            </div>
-            <div className="w-full mb-16">
-              <h2 className="text-[22px] font-bold">후기 (3) </h2>
-              <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
-              <div>
-                {/* 별 간격 고치기 */}
-                <div className="mb-[57px]">
-                  <div className="flex mb-[15px]">
-                    <div className="flex w-1/2 justify-around mr-[13px]">
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-empty.png" alt="" />
-                      <img src="/star-empty.png" alt="" />
-                      <img src="/star-empty.png" alt="" />
-                    </div>
-                    <div className="w-0.5 bg-black mr-[5px]"></div>
-                    <p className="text-[22px] font-bold">24.06.30</p>
-                  </div>
-                  <p className="text-[22px] font-bold">
-                    원하는 방향대로 수업을 진행해주셨지만 시간을 어기는 경우가
-                    가끔 있으셨어요
-                  </p>
-                </div>
-                <div className="mb-[57px]">
-                  <div className="flex mb-[15px]">
-                    <div className="flex w-1/2 justify-around mr-[13px]">
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                    </div>
-                    <div className="w-0.5 bg-black mr-[5px]"></div>
-                    <p className="text-[22px] font-bold">24.06.29</p>
-                  </div>
-                  <p className="text-[22px] font-bold">
-                    항상 좋은 자료를 준비해주시고 수업도 열정적으로 해주셔서
-                    감사합니다
-                  </p>
-                </div>
-                <div className="mb-[57px]">
-                  <div className="flex mb-[15px]">
-                    <div className="flex w-1/2 justify-around mr-[13px]">
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-full.png" alt="" />
-                      <img src="/star-empty.png" alt="" />
-                      <img src="/star-empty.png" alt="" />
-                    </div>
-                    <div className="w-0.5 bg-black mr-[5px]"></div>
-                    <p className="text-[22px] font-bold">24.06.28</p>
-                  </div>
-                  <p className="text-[22px] font-bold">
-                    생각했던 것보다 성적이 잘 안 나왔어요
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end fixed bottom-16 right-12">
-              <button className="h-[61px] bg-[#FF0000] opacity-50 rounded-[10px] text-white text-2xl px-[50px] py-[13px] animate-bounce">
-                문의하기
-              </button>
+            <div className="w-full h-1 bg-black"></div>
+            <div className="flex justify-center pt-4">
+              <p className="text-xl py-1 px-10">
+                {mentorData.selfIntroduction}
+              </p>
             </div>
           </div>
         </div>
+
+        {/* 오른쪽 정보 */}
+        <div className="w-7/12 mr-4">
+          {/* 연락 가능 시간 */}
+          <section className="mb-16">
+            <h2 className="text-[22px] font-bold">연락 가능 시간</h2>
+            <div className="w-full h-1 bg-black mt-3 mb-5"></div>
+            <div className="pl-2">
+              {mentorData.availabilities &&
+              mentorData.availabilities.length > 0 ? (
+                mentorData.availabilities.map((day) => (
+                  <div className="flex mb-[11px]" key={day.id}>
+                    <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[11px] py-[6px] mr-[21px]">
+                      <p className="content-center text-xl">
+                        {dayOfWeekMap[day.dayOfWeek]}
+                      </p>
+                    </div>
+                    <div className="bg-[#F5F5F5] rounded-[15px] flex justify-center px-[14px] py-[6px]">
+                      <p className="content-center text-xl mr-1">
+                        {day.availableStartTime.substring(0, 5)}
+                      </p>
+                      <p className="content-center text-xl mr-1"> ~ </p>
+                      <p className="content-center text-xl">
+                        {day.availableEndTime.substring(0, 5)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-base pl-5">
+                  현재 등록된 시간이 없습니다.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* 수업, 학점 */}
+          <section className="mb-16">
+            <h2 className="text-[22px] font-bold">수업, 학점</h2>
+            <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
+            <div className="pl-2">
+              <div className="grid grid-cols-7 items-center mb-2">
+                <div className="flex justify-start px-5 py-1 col-span-2">
+                  <p className="content-center text-xl">학과명</p>
+                </div>
+                <div className="flex justify-start px-5 py-1 col-span-3 ml-6">
+                  <p className="content-center text-xl">과목명</p>
+                </div>
+                <div className="flex justify-start px-5 py-1 ml-7 w-full">
+                  <p className="content-center text-xl">학점수</p>
+                </div>
+                <div className="flex justify-start px-5 py-1 ml-5">
+                  <p className="content-center text-xl">성적</p>
+                </div>
+              </div>
+              {mentorData.courseDetails &&
+              mentorData.courseDetails.length > 0 ? (
+                mentorData.courseDetails.map((course) => (
+                  <div key={course.id} className="flex items-center mb-2">
+                    <div className="grid grid-cols-7">
+                      <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-2 text-lg col-span-2">
+                        {course.department}
+                      </div>
+                      <div className="bg-lightGray02 rounded-[15px] justify-start pl-5 py-2 w-full ml-6 text-lg col-span-3">
+                        {course.courseName}
+                      </div>
+                      <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-9 text-lg w-[80px]">
+                        {course.credit}
+                      </div>
+                      <div className="bg-lightGray02 rounded-[15px] flex justify-center items-center px-4 py-2 ml-5 text-lg w-[80px]">
+                        {course.gradeStatus}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-base pl-5 pt-2">
+                  현재 등록된 수업이 없습니다.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* 대면/비대면 여부 */}
+          <section className="mb-16">
+            <h2 className="text-[22px] font-bold">대면/비대면 여부</h2>
+            <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
+            <div className="flex pl-5 text-xl">
+              <div className="flex mr-[30px]">
+                <div className="w-[30px] h-[30px] bg-[#D9D9D9] rounded-full mr-5 flex justify-center items-center">
+                  {mentorData.waysOfCommunication === "FACETOFACE" && (
+                    <div className="w-[15px] h-[15px] bg-[#FF0000] opacity-50 rounded-full"></div>
+                  )}
+                </div>
+                <p>대면</p>
+              </div>
+              <div className="flex mr-[30px]">
+                <div className="w-[30px] h-[30px] bg-[#D9D9D9] rounded-full mr-5 flex justify-center items-center">
+                  {mentorData.waysOfCommunication !== "FACETOFACE" && (
+                    <div className="w-[15px] h-[15px] bg-[#FF0000] opacity-50 rounded-full"></div>
+                  )}
+                </div>
+                <p>비대면</p>
+              </div>
+            </div>
+          </section>
+          <div className="w-full mb-16">
+            <h2 className="text-[22px] font-bold">
+              후기 ({mentorData.reviews?.length || 0})
+            </h2>
+            <div className="w-full h-1 bg-black mt-[10px] mb-5"></div>
+            <div>
+              {/* 별 간격 고치기 */}
+              {mentorData.reviews?.length > 0 ? (
+                mentorData.reviews.map((review, index) => (
+                  <div className="mb-10 pl-3" key={index}>
+                    <div className="flex mb-4 ">
+                      <div className="grid grid-cols-5 gap-2 justify-around mr-5">
+                        {renderStars(review.rate)}
+                      </div>
+                      <div className="w-0.5 bg-black mr-3"></div>
+                      <p className="text-lg font-bold">
+                        {review.reviewDate?.replace(/-/g, ".")}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold">{review.comment}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-base pl-5 pt-2">
+                  현재 등록된 후기가 없습니다.
+                </p>
+              )}
+            </div>
+
+            {/* 문의 버튼 */}
+            {String(currentUserId) !== String(mentorData.mentorId) && (
+              <ButtonWithChat
+                currentUserId={String(currentUserId)}
+                mentorId={String(mentorData.mentorId)}
+              />
+            )}
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

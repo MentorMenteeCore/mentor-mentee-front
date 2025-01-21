@@ -10,12 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.5.0",
+    "@stomp/stompjs": "^7.0.0",
     "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
+    "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-native-paper": "^5.12.5",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^6.24.1",
-    "react-sticky-header": "^0.2.0"
+    "react-sticky-header": "^0.2.0",
+    "socketjs-client": "^1.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

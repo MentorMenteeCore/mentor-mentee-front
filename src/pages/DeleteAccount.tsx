@@ -1,29 +1,66 @@
-import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
+import api from "../services/api";
+import useWindowHeight from "../components/useWindowHeight";
 
 export default function DeleteAccount() {
   const checkboxRef = useRef(null);
+  const [email, setEmail] = useState("");
 
-  function handleClick(event) {
-    event.preventDefault();
+  const navigate = useNavigate();
 
+  //커스텀 훅 사용
+  const windowHeight = useWindowHeight();
+
+  const handleDeleteAccount = async () => {
     if (!checkboxRef.current.checked) {
       alert("주의사항을 모두 확인하셔야 회원 탈퇴 가능합니다.");
       return;
     }
-    alert("회원 탈퇴가 완료되었습니다.");
-    window.location.href = "/";
-  }
+    if (!email) {
+      alert("Email을 입력해주세요.");
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      return alert("올바른 이메일 형식이 아닙니다.");
+    }
+
+    try {
+      const response = await api.delete(`/user`, {
+        params: { useremail: email },
+        data: { userEmail: email },
+      });
+      if (response.status === 200) {
+        alert("회원탈퇴가 완료되었습니다.");
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("refreshToken");
+        console.log("회원탈퇴 성공");
+        window.location.replace("/");
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data.message === "잘못된 이메일입니다."
+      ) {
+        alert(error.response.data.message);
+      }
+    }
+  };
   return (
     <>
-      <div>
+      <div style={{ height: windowHeight }}>
         <p className="text-2xl pb-2">회원탈퇴</p>
-        <div className="grid border-2 border-black py-11 px-11 gap-10">
+        <div className="grid border-2 border-black py-7 px-11 gap-5">
           <div className="">
             <p className="text-xl text-lightGray04 pb-3">이메일 확인</p>
             <div className="w-full border-2 border-black rounded-[10px] p-2">
               <input
                 className="px-2 w-full text-lg outline-none"
                 type="email"
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="LOGO에 가입하신 이메일을 적어주세요."
               />
             </div>
@@ -62,8 +99,8 @@ export default function DeleteAccount() {
 
           <button
             type="submit"
-            className="text-red01 border-2 border-black text-2xl rounded-[20px] py-4 px-9 w-max justify-self-end"
-            onClick={handleClick}
+            className="text-red01/80 border-2 border-black text-xl rounded-[20px] py-3 px-7 w-max justify-self-end"
+            onClick={handleDeleteAccount}
           >
             회원 탈퇴
           </button>

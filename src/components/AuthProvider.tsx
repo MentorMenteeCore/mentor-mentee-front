@@ -1,9 +1,62 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import api from "../services/api";
 
-const AuthContext = createContext();
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-export const AuthProvider = ({ children }) => {
+const AuthContext = createContext({
+  isLoggedIn: false,
+  setIsLoggedIn: (value: boolean) => {},
+  logout: () => {},
+});
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const logout = async () => {
+    const accessToken =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    console.log("api 호출 ");
+    try {
+      const response = await api.delete("/user/logout", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        data: {
+          token: accessToken,
+        },
+      });
+      console.log(response.status);
+
+      // 로그아웃 성공 확인
+      if (response.status === 200) {
+        setIsLoggedIn(false);
+        // 로그아웃 후 토큰 제거
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("refreshToken");
+        localStorage.removeItem("userId");
+        sessionStorage.removeItem("userId");
+        localStorage.removeItem("socketToken");
+        console.log("로그아웃 성공");
+      } else {
+        console.log("로그아웃 실패: ", response.data);
+      }
+    } catch (error) {
+      console.log(
+        "로그아웃 중 오류 발생: ",
+        error.response ? error.response.data : error
+      );
+    }
+  };
 
   useEffect(() => {
     const token =
@@ -11,10 +64,10 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       setIsLoggedIn(true);
     }
-  }, []);
+  }, [isLoggedIn]);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, logout }}>
       {children}
     </AuthContext.Provider>
   );
